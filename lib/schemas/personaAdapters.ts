@@ -7,6 +7,11 @@
 //   Phase 2 (Task 1.7): typed loadPersona / listPersonas added on top
 // Do not rewrite this file in Task 1.7 — only extend it.
 
+import personasData from '@/data/personas.json';
+import { CustomerProfileSchema, type CustomerProfile } from './customerProfile';
+import { Pass1OutputSchema, type Pass1Output } from './pass1';
+import { Pass2OutputSchema, type Pass2Output } from './pass2';
+
 export function normalizePass1(p1: any): any {
   return {
     ...p1,
@@ -96,4 +101,50 @@ export function normalizePass2(p2: any): any {
     _dc07_structured_record: p2._dc07_structured_record ?? dc07._dc07_structured_record,
     _dc07_prose: p2._dc07_prose ?? dc07._dc07_prose,
   };
+}
+
+// ---- Task 1.7 additions (additive per Plan Amendment #1) ----
+// Typed schema-validating loaders. Pure normalizers above remain unchanged.
+
+export type PersonaId = 'maria' | 'carlos' | 'persona_c' | 'persona_d';
+
+export interface LoadedPersona {
+  id: PersonaId;
+  name: string;
+  descriptor: string;
+  profile: CustomerProfile;
+  pass_1: Pass1Output;
+  pass_2: Pass2Output;
+}
+
+export function loadPersona(id: PersonaId): LoadedPersona {
+  const raw = personasData.personas.find((p: any) => p.id === id);
+  if (!raw) throw new Error(`Unknown persona id: ${id}`);
+
+  const profile = CustomerProfileSchema.parse(raw.profile);
+  const pass_1 = Pass1OutputSchema.parse(normalizePass1(raw.pass_1));
+  const pass_2 = Pass2OutputSchema.parse(normalizePass2(raw.pass_2));
+
+  return {
+    id: raw.id as PersonaId,
+    name: raw.name,
+    descriptor: raw.descriptor,
+    profile,
+    pass_1,
+    pass_2,
+  };
+}
+
+export interface PersonaListEntry {
+  id: PersonaId;
+  name: string;
+  descriptor: string;
+}
+
+export function listPersonas(): PersonaListEntry[] {
+  return personasData.personas.map((p: any) => ({
+    id: p.id as PersonaId,
+    name: p.name,
+    descriptor: p.descriptor,
+  }));
 }
