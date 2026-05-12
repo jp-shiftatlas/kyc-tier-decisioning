@@ -1,0 +1,2027 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "source": "08_PERSONA_OUTPUTS.md (locked May 10, 2026)",
+    "model": "claude-sonnet-4-6",
+    "ruleset": "v1 (with edits through May 9, 2026 per Decision 25)",
+    "all_personas_pass_clean": true,
+    "pass_3_outputs_present": false,
+    "schema_variations": {
+      "decision_28_persona_c_pass_2": "Uses audit_generated_at / target_violations / null regeneration_scope / extra audited_persona — preserved as-is, normalized at render time per PRIMARY_PROMPT.md §4.4",
+      "decision_29_pass_1_category": "Carlos and Persona C use 'escalation' instead of canonical 'escalation_triggers' in rules_fired[].category — preserved as-is, normalized at render time per PRIMARY_PROMPT.md §4.4"
+    }
+  },
+  "personas": [
+    {
+      "id": "maria",
+      "name": "Maria",
+      "descriptor": "Salaried PH resident — Standard-tier baseline",
+      "profile": {
+        "customer_reference": "Maria S. (Persona A)",
+        "occupation_type": "employed",
+        "residency_status": "PH resident",
+        "source_of_funds": "salary",
+        "expected_monthly_volume_php": 80000,
+        "pep_status": "none",
+        "sanctions_screening": "clean",
+        "high_risk_jurisdiction_connection": "none",
+        "customer_type": "individual retail",
+        "account_purpose": "payroll",
+        "years_with_bank": "new",
+        "identity_document_type": "PhilSys",
+        "adverse_media": "no"
+      },
+      "pass_1": {
+        "decision": {
+          "recommended_tier": "Standard",
+          "decision_basis": "score_based",
+          "decisive_rule_ids": [
+            "TE-02"
+          ],
+          "senior_approval_required": false,
+          "onboarding_hold": false,
+          "hold_reason": null
+        },
+        "risk_score": {
+          "total": 0,
+          "category_breakdown": {
+            "tier_eligibility": 0,
+            "escalation_triggers": 0,
+            "documentation_process": 0
+          },
+          "score_band": "0-10",
+          "score_vs_decision_note": "Score: 0 — Standard tier set by TE-02 baseline rule, not by score threshold. TE-01 SDD eligibility not satisfied: expected monthly volume of PHP 80,000 exceeds the PHP 50,000/mo ceiling under TE-01. Score-band logic would suggest SDD eligibility, but the TE-02 volume band governs. Score is informational; TE-02 baseline is the operative determination."
+        },
+        "rules_fired": [
+          {
+            "rule_id": "TE-02",
+            "rule_name": "Standard profile baseline",
+            "category": "tier_eligibility",
+            "weight": 0,
+            "trigger_evidence": "Employed PH resident, expected monthly volume PHP 80,000 (within PHP 50K–500K/mo band), salary as source of funds, no adverse media findings, clean sanctions screening, payroll account purpose — all TE-02 trigger conditions satisfied.",
+            "tier_impact": "Baseline Standard tier. No hard rule escalation. No SDD eligibility — volume exceeds TE-01 ceiling of PHP 50,000/mo."
+          },
+          {
+            "rule_id": "DC-01",
+            "rule_name": "PhilSys / PhilID acceptance",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "Identity document type = PhilSys, presented as primary identification at onboarding.",
+            "tier_impact": "Acceptable as sole identification per RA 11055. e-KYC eligible. No secondary verification required. No documentation hold."
+          },
+          {
+            "rule_id": "DC-07",
+            "rule_name": "NPC AI accountability disclosure",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "AI tier recommendation generated. Documented rationale required per NPC Advisory 2024-04.",
+            "tier_impact": "Process requirement — auditable decision record with documented human review is mandatory before account opening proceeds."
+          }
+        ],
+        "risk_pattern_analysis": {
+          "compounding_pattern_present": false,
+          "pattern_summary": null,
+          "contributing_factors": [],
+          "interaction_explanation": null
+        },
+        "considered_alternatives": [
+          {
+            "alternative_tier": "SDD",
+            "rejection_reason": "TE-01 SDD eligibility requires expected monthly volume below PHP 50,000/mo. Maria's declared volume of PHP 80,000/mo exceeds this ceiling. All other TE-01 conditions are satisfied — salaried PH resident, single payroll account purpose, clean sanctions, no PEP, PhilSys presented — but TE-01's numeric threshold is a hard condition, not a soft indicator. TE-01 does not fire."
+          },
+          {
+            "alternative_tier": "EDD",
+            "rejection_reason": "No hard escalation rules fire. PEP status is none, sanctions screening is clean, no high-risk jurisdiction connection, no adverse media, source of funds is salary and verifiable, expected volume of PHP 80,000/mo is well below the PHP 1M EDD threshold under BSP Circular 1230. TE-05 (new relationship + high volume) requires volume ≥ PHP 500,000/mo — not met. No basis for EDD."
+          }
+        ],
+        "recommended_edd_procedures": [],
+        "summary_finding": "Recommended for Standard CDD tier under TE-02 (standard employed PH resident baseline); no hard escalation rules fire and all screening vectors are clean. SDD eligibility is foreclosed solely by volume — declared PHP 80,000/mo exceeds the PHP 50,000/mo ceiling under TE-01, though the remainder of Maria's profile presents no elevated risk.",
+        "examiner_notes_full": {
+          "decision_summary": "This customer is recommended for Standard CDD tier. The recommendation is anchored by TE-02 (standard profile baseline), the operative rule for an employed Philippine resident with expected monthly volume in the PHP 50,000–500,000 band. No hard escalation rules fire. No senior compliance approval is required. No onboarding hold is indicated. Risk score: 0, which falls within the 0–10 band; however, Standard tier is set by the TE-02 baseline rule, not by score-band logic — the score is informational, and the tier determination is operative regardless of its direction. This is a clean baseline case.",
+          "profile_analysis": "The applicant is a salaried Philippine resident opening a payroll account. Declared expected monthly volume is PHP 80,000. Source of funds is employment salary. Identity documentation is PhilSys, presented as primary identification at onboarding. The relationship is new — no prior CDD history with this bank. PEP status is declared as none. Sanctions screening is clean. No high-risk jurisdiction connection is present. No adverse media findings were returned on screening. Account purpose is singular: payroll. The profile presents no cross-border complexity, no beneficial ownership questions, and no documentation gaps.",
+          "rule_application_and_risk_pattern": "TE-02 governs. The applicant is an employed Philippine resident, expected monthly volume of PHP 80,000 falls within the PHP 50,000–500,000 band, source of funds is salary and conventional, and adverse media screening returned no findings. All TE-02 trigger conditions are satisfied. The rule's tier impact is Standard baseline.\n\nSDD eligibility under TE-01 was evaluated and does not apply. TE-01 requires expected monthly volume below PHP 50,000/mo. The applicant's declared volume of PHP 80,000/mo exceeds this ceiling. The comparison is determinative: 80,000 is not less than 50,000. All other TE-01 conditions — salaried PH resident, single account purpose, clean sanctions, no PEP, PhilSys presented — are satisfied, but the numeric threshold is a hard condition. TE-01 does not fire.\n\nNo escalation rules are triggered. ES-01 through ES-03 do not apply — PEP status is none. ES-04 does not apply — sanctions screening is clean. ES-05 does not apply — no sanctions pending review. ES-06 does not apply — no high-risk jurisdiction connection. ES-07 and ES-08 do not apply — adverse media screening returned no findings. TE-03 does not apply — PHP 80,000/mo is well below the PHP 1M EDD threshold under BSP Circular 1230 (2026). TE-05 does not apply — the new-relationship condition is present, but the volume condition (≥ PHP 500,000/mo) is not met.\n\nNo compounding risk pattern is present. The profile presents a single coherent risk level — low-to-standard — across all evaluated dimensions. No subset of individually non-decisive factors interacts in a manner that would alter the assessment. The new-relationship status is the only factor that merits note; it does not compound with any other element at this volume level and account purpose.",
+          "considered_alternatives": "SDD was considered and rejected. The applicant's profile would satisfy all TE-01 conditions except one: declared expected monthly volume of PHP 80,000/mo exceeds the PHP 50,000/mo ceiling that TE-01 requires. This is a hard threshold, not a soft indicator. The rejection is narrow — had declared volume been below PHP 50,000/mo, SDD would have been the appropriate tier. At PHP 80,000/mo, Standard is the correct and only defensible determination. EDD was not a realistic alternative: no hard escalation rule fires, and the cumulative risk score produces no basis for an elevated tier recommendation.",
+          "recommended_edd_procedures": null,
+          "audit_trail": "This recommendation was generated by the AI reasoning layer on [timestamp], evaluated against Ruleset v1 (25 rules), and presented to the compliance analyst for final review and documented approval per NPC Advisory 2024-04. The decisive rule (TE-02), the rejected SDD alternative (TE-01 threshold not met), and the absence of any escalation trigger have been recorded in the structured decision fields. All rule evaluations, threshold arithmetic, and reasoning steps are logged in the immutable decision record. Human review and documented decision are required before account opening proceeds. The analyst retains authority to Approve, Escalate, or Override this recommendation."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-09T00:00:00Z",
+          "model": "claude-sonnet-4-6"
+        }
+      },
+      "pass_2": {
+        "overall_status": "PASS",
+        "correction_required": false,
+        "audit_summary": "Pass 1 output for Maria S. (Persona A) audited against Ruleset v1 (25 rules) and the customer profile. Independent re-derivation confirms Standard CDD tier under TE-02; no hard rules fire; score = 0; TE-01 SDD eligibility correctly foreclosed by PHP 80,000/mo exceeding the <PHP 50K/mo ceiling. All rule-firing, threshold arithmetic, score, decision-basis, pattern analysis, register, and documentation checks pass. No violations found.",
+        "independence_attestation": {
+          "independent_assessment_completed": true,
+          "method_note": "Reviewed customer profile and Ruleset v1 in full before reading Pass 1 output. Derived independent rules-fired list: TE-02 (volume PHP 80K/mo within PHP 50K–500K/mo band), DC-01 (PhilSys presented), DC-07 (AI recommendation generated). Performed explicit threshold arithmetic for TE-02 (80,000 within 50,000–500,000 band: confirmed), TE-01 (80,000 not less than 50,000: TE-01 correctly excluded), TE-03 (80,000 not ≥ 1,000,000: correctly excluded), TE-05 (80,000 not ≥ 500,000: correctly excluded). Computed score = 0; confirmed SDD ineligible (TE-01 not satisfied despite score band). Confirmed no hard rules fire. Confirmed no compounding pattern. Then read Pass 1 full output and compared."
+        },
+        "checks": [
+          {
+            "check_id": "hard_rule_floor_sanctions",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-04 sanctions hit — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Sanctions screening = clean per profile. ES-04 does not fire. No decline or freeze obligation. Hard rule floor not triggered.",
+            "confidence_basis": null,
+            "regulatory_citation": "UNSCR via MORB §923, AMLA",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_pep",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-01/02/03 PEP hard rule floors — EDD minimum",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "PEP status = none per profile. ES-01, ES-02, and ES-03 do not fire. No mandatory EDD floor from PEP rules. Correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, AMLA, FATF R.12",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_te10",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-10 unclear source of funds — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Source of funds = salary per profile — conventional and verifiable. TE-10 trigger requires source of funds = unclear or unsubstantiable. Condition not met. TE-10 correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a), AMLA §9",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_es06",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-06 high-risk jurisdiction connection — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "High-risk jurisdiction connection = none per profile. ES-06 does not fire. No mandatory EDD floor from jurisdiction rule. Correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "FATF R.10, MORB §921",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_te07",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-07 non-resident foreign individual — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Residency status = PH resident per profile. TE-07 trigger requires residency = non-resident foreign. Condition not met. TE-07 correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a), FATF R.10",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_te04",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-04 mass affluent / private banking — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Customer type = individual retail per profile. TE-04 trigger requires customer type = mass affluent or private banking. Condition not met. TE-04 correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a), §923",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_es07",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-07 confirmed adverse media — hard rule floor check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Adverse media = no per profile. ES-07 trigger requires adverse media = yes (confirmed findings). Condition not met. ES-07 correctly absent from rules_fired. ES-08 (unclear adverse media) also does not apply — adverse media is negative, not unclear.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE-01",
+            "check_type": "rule_firing",
+            "check_description": "TE-01 SDD eligibility — correctly excluded from rules_fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-01 is absent from Pass 1's rules_fired. Pass 1 addresses TE-01 in both the score_vs_decision_note and the considered_alternatives section, correctly identifying that the PHP 80,000/mo volume exceeds TE-01's <PHP 50K/mo ceiling. The five non-numeric TE-01 conditions (salaried PH resident, single payroll purpose, clean sanctions, no PEP, PhilSys presented) are all satisfied — but the numeric volume ceiling is a hard condition, not a soft indicator. Exclusion is correct and the examiner notes reason through it explicitly.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE-01_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-01 volume ceiling — arithmetic verification (TE-01 absent from rules_fired)",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-01 requires expected monthly volume <PHP 50,000/mo. Profile volume is PHP 80,000/mo. Arithmetic confirms TE-01 ceiling is not satisfied; TE-01 correctly does not fire. Pass 1's exclusion of TE-01 is arithmetically verified.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 80,000/mo",
+            "rule_threshold": "<PHP 50,000/mo",
+            "comparison_result": "80,000 is not less than 50,000 — TE-01 ceiling not satisfied; rule correctly excluded"
+          },
+          {
+            "check_id": "rule_check_TE-02",
+            "check_type": "rule_firing",
+            "check_description": "TE-02 standard profile baseline — rule firing check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-02 correctly fires. Trigger conditions: employed PH resident (satisfied — employed, PH resident per profile), expected volume PHP 50K–500K/mo (satisfied — PHP 80,000/mo falls within band), clean adverse media (satisfied — adverse media = no), conventional source of funds (satisfied — salary). All four conditions met. Weight = 0. Tier impact: Standard baseline. Firing is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE-02_volume_band",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-02 volume band — arithmetic verification",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-02 requires expected monthly volume within PHP 50,000–500,000/mo band. Profile volume is PHP 80,000/mo. Arithmetic confirms the volume falls within the stated band; TE-02 firing is supported by the threshold check.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 80,000/mo",
+            "rule_threshold": "PHP 50,000–500,000/mo",
+            "comparison_result": "80,000 is within 50,000–500,000 range — TE-02 volume band satisfied"
+          },
+          {
+            "check_id": "rule_check_TE-03",
+            "check_type": "rule_firing",
+            "check_description": "TE-03 high volume threshold — correctly excluded from rules_fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03 requires expected monthly volume ≥PHP 1M. Profile volume is PHP 80,000/mo. TE-03 does not fire; correctly absent from rules_fired. No EDD required on volume grounds.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE-03_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-03 volume threshold — arithmetic verification (TE-03 absent from rules_fired)",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03 requires expected monthly volume ≥PHP 1,000,000/mo. Profile volume is PHP 80,000/mo. Arithmetic confirms TE-03 threshold is not met; rule correctly excluded.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": "PHP 80,000/mo",
+            "rule_threshold": "≥PHP 1,000,000/mo",
+            "comparison_result": "80,000 is not ≥ 1,000,000 — TE-03 threshold not met; rule correctly excluded"
+          },
+          {
+            "check_id": "rule_check_TE-05",
+            "check_type": "rule_firing",
+            "check_description": "TE-05 new relationship + high volume — correctly excluded from rules_fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-05 requires both years_with_bank = new AND expected volume ≥PHP 500K/mo. The new-relationship condition is satisfied (years_with_bank = new per profile), but the volume condition is not — PHP 80,000/mo does not meet the ≥PHP 500K/mo threshold. Both conditions must be met; one alone is insufficient. TE-05 correctly absent from rules_fired.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE-05_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-05 high-volume condition — arithmetic verification (TE-05 absent from rules_fired)",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-05 requires expected monthly volume ≥PHP 500,000/mo (alongside new-relationship condition). Profile volume is PHP 80,000/mo. Arithmetic confirms the volume condition is not met; TE-05 correctly excluded despite new-relationship condition being present.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 80,000/mo",
+            "rule_threshold": "≥PHP 500,000/mo",
+            "comparison_result": "80,000 is not ≥ 500,000 — TE-05 volume condition not satisfied; rule correctly excluded"
+          },
+          {
+            "check_id": "rule_check_DC-01",
+            "check_type": "rule_firing",
+            "check_description": "DC-01 PhilSys / PhilID acceptance — rule firing check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-01 correctly fires. Identity document type = PhilSys presented as primary identification per profile. DC-01 trigger condition satisfied. Weight = 0. Process impact: acceptable as sole ID per RA 11055; e-KYC eligible; no secondary verification required. Firing is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1170, RA 11055",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_DC-07",
+            "check_type": "rule_firing",
+            "check_description": "DC-07 NPC AI accountability disclosure — rule firing check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-07 correctly fires. An AI tier recommendation was generated; DC-07 trigger condition is met on every AI-generated recommendation. Weight = 0 (process rule). Firing is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_arithmetic",
+            "check_type": "score_arithmetic",
+            "check_description": "Risk score arithmetic — sum of weights reconciliation",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Rules fired: TE-02 (weight 0) + DC-01 (weight 0) + DC-07 (weight 0) = 0. Reported risk_score.total = 0. Category breakdown: tier_eligibility = 0, escalation_triggers = 0, documentation_process = 0. Total = 0. Arithmetic reconciles.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_band_mapping",
+            "check_type": "score_band_mapping",
+            "check_description": "Score-band mapping — score to tier consistency",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Score = 0, reported score_band = '0-10'. The ruleset's score-band logic maps 0–10 to SDD eligible only if TE-01/06/08 is also satisfied. TE-01 is not satisfied (volume ceiling not met); TE-06 and TE-08 are not applicable. Pass 1 correctly notes that score-band logic would suggest SDD eligibility but the TE-02 volume band governs. Standard tier is the correct determination at score 0 with no SDD-eligible baseline rule satisfied. The score_vs_decision_note accurately characterizes the relationship between score and tier. Mapping is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "decision_basis_consistency",
+            "check_type": "decision_basis_consistency",
+            "check_description": "Decision basis — score_based vs. hard_rule consistency",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 reports decision_basis = 'score_based'. No hard escalation rules fire (verified above across ES-01 through ES-08 and TE-03 through TE-10 hard-floor rules). Score-based determination is correct. decision_basis is consistent with the rule-firing analysis.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "pattern_substance",
+            "check_type": "pattern_substance",
+            "check_description": "Pattern analysis substance — compounding_pattern_present: false",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 reports compounding_pattern_present: false with contributing_factors: []. Independent assessment concurs. The profile presents one mild, non-decisive flag — new-relationship status — which does not compound with any other elevated-risk factor at this volume level and account purpose. The standard for a compounding-pattern finding requires three or more moderate factors interacting; that threshold is not met. The null pattern_summary is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "consistency_summary_vs_decision",
+            "check_type": "consistency",
+            "check_description": "Summary finding consistency with structured decision",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "summary_finding states: 'Recommended for Standard CDD tier under TE-02 (standard employed PH resident baseline); no hard escalation rules fire and all screening vectors are clean.' Structured decision: recommended_tier = Standard, decisive_rule_ids = [TE-02], onboarding_hold = false, senior_approval_required = false. Summary finding is consistent with the structured decision across tier, decisive rule, and absence of holds or escalation.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "consistency_examiner_notes_vs_rules_fired",
+            "check_type": "consistency",
+            "check_description": "Examiner notes internal consistency — rule references vs. rules_fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Examiner notes reference TE-02, DC-01, DC-07 as the fired rules. These match rules_fired exactly. Examiner notes also reference TE-01 (rejected alternative), ES-01 through ES-08 (confirmed non-firing), TE-05 (confirmed non-firing), and TE-03 (confirmed non-firing via BSP Circular 1230 threshold reference). No rule is claimed to have fired in examiner notes that is absent from rules_fired; no fabricated rule_ids present.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "register_examiner_notes_sections",
+            "check_type": "register_compliance",
+            "check_description": "Examiner notes — required sections present",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "All six required examiner notes sections are present: decision_summary, profile_analysis, rule_application_and_risk_pattern, considered_alternatives, recommended_edd_procedures (populated as null — correct for a Standard tier case with no EDD), and audit_trail. No section is missing.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "register_examiner_notes_voice",
+            "check_type": "register_compliance",
+            "check_description": "Examiner notes — institutional register, no AI self-reference or hedging",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Examiner notes reviewed across all sections. No AI self-reference detected ('I have determined,' 'based on my analysis,' etc.). No hedging language detected ('I believe,' 'it seems,' 'perhaps'). Register is direct, committed, and institutional throughout. Sections are appropriately substantive without being verbose.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "dc07_documentation",
+            "check_type": "dc07_documentation",
+            "check_description": "DC-07 NPC AI accountability — documented rationale substantive and present",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-07 fires and the audit_trail section of examiner_notes_full provides substantive documented rationale: references AI reasoning layer, Ruleset v1, NPC Advisory 2024-04, the decisive rule (TE-02), the rejected SDD alternative (TE-01 threshold not met), absence of escalation triggers, and the immutable decision record requirement. The analyst's retained authority to Approve, Escalate, or Override is explicitly stated. DC-07 process requirement is satisfied.",
+            "confidence_basis": null,
+            "regulatory_citation": "NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          }
+        ],
+        "violation_summary": {
+          "critical_count": 0,
+          "material_count": 0,
+          "quality_count": 0,
+          "violation_categories": []
+        },
+        "pass_3_targeting": {
+          "target_check_ids": [],
+          "regeneration_scope": "none",
+          "preservation_note": "Pass 1 output is correct in full. All rules correctly fired (TE-02, DC-01, DC-07), all rules correctly excluded, threshold arithmetic verified, score = 0 reconciled, decision basis = score_based confirmed, examiner notes sections complete and register-clean. No regeneration required."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-09T00:00:00Z",
+          "model": "claude-sonnet-4-6",
+          "audit_against_pass_1_id": "maria_persona_a_pass1_2026-05-09"
+        }
+      }
+    },
+    {
+      "id": "carlos",
+      "name": "Carlos",
+      "descriptor": "OFW returnee, PEP close associate — multi-factor EDD",
+      "profile": {
+        "customer_reference": "Carlos M. (Persona B)",
+        "occupation_type": "employed",
+        "residency_status": "PH resident",
+        "source_of_funds": "mixed (overseas salary savings + inheritance)",
+        "expected_monthly_volume_php": 850000,
+        "pep_status": "close associate",
+        "sanctions_screening": "clean",
+        "high_risk_jurisdiction_connection": "none",
+        "customer_type": "individual retail",
+        "account_purpose": "business and remittance",
+        "years_with_bank": "new",
+        "identity_document_type": "passport (PhilSys enrollment in process)",
+        "adverse_media": "no"
+      },
+      "pass_1": {
+        "decision": {
+          "recommended_tier": "EDD",
+          "decision_basis": "hard_rule",
+          "decisive_rule_ids": [
+            "ES-03",
+            "TE-05"
+          ],
+          "senior_approval_required": true,
+          "onboarding_hold": false,
+          "hold_reason": null
+        },
+        "risk_score": {
+          "total": 45,
+          "category_breakdown": {
+            "tier_eligibility": 15,
+            "escalation_triggers": 25,
+            "documentation_process": 5
+          },
+          "score_band": "31+",
+          "score_vs_decision_note": "Score 45 — but decision is hard-rule mandatory EDD driven by ES-03 (PEP close associate) and TE-05 (new relationship + high volume). Score is confirmatory, not decisional; both hard rules independently mandate EDD regardless of score outcome."
+        },
+        "rules_fired": [
+          {
+            "rule_id": "ES-03",
+            "rule_name": "PEP — close associate",
+            "category": "escalation",
+            "weight": 25,
+            "trigger_evidence": "Customer declared PEP status as close associate of a Philippine PEP at onboarding. Sanctions screening is clean. PEP relationship is disclosed, not inferred.",
+            "tier_impact": "Mandatory EDD with senior management approval required under MORB §921, MORB §923, and FATF Recommendation 12. This rule alone is sufficient and decisive; the tier cannot be downgraded regardless of score or other factors."
+          },
+          {
+            "rule_id": "TE-05",
+            "rule_name": "New relationship + high volume",
+            "category": "tier_eligibility",
+            "weight": 15,
+            "trigger_evidence": "Years with bank = new. Expected monthly volume = PHP 850,000. Threshold comparison: PHP 850,000 ≥ PHP 500,000 — TE-05's volume condition is satisfied. Both trigger conditions met.",
+            "tier_impact": "Mandatory EDD required under MORB §921(a). Would independently mandate EDD even absent ES-03. Reinforces the hard-rule floor."
+          },
+          {
+            "rule_id": "DC-06",
+            "rule_name": "Source of funds — inheritance",
+            "category": "documentation_process",
+            "weight": 5,
+            "trigger_evidence": "Source of funds declared as mixed: overseas salary savings and inheritance. Inheritance component triggers DC-06 regardless of whether the overall source-of-funds characterization is mixed or singular.",
+            "tier_impact": "Documentation of estate settlement required; Standard minimum tier floor. Does not alter the hard-rule EDD outcome but adds a specific documentation requirement to the onboarding procedure."
+          },
+          {
+            "rule_id": "DC-02",
+            "rule_name": "Single non-PhilSys ID limitation",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "Identity document presented is passport. PhilSys enrollment is in process but not yet complete. Passport is a non-PhilSys document and therefore cannot serve as sole means of identification under BSP Circular 1170.",
+            "tier_impact": "Secondary verification required. Does not alter tier but flags a documentation requirement that must be satisfied before onboarding proceeds and tracked to closure upon PhilSys enrollment completion."
+          },
+          {
+            "rule_id": "DC-07",
+            "rule_name": "NPC AI accountability disclosure",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "This tier recommendation was generated by an AI reasoning layer. DC-07 fires on every AI-generated tier recommendation by virtue of the recommendation being AI-generated. Substantive documented-rationale requirement is satisfied by the audit_trail section of the examiner notes; this structured-record entry satisfies the parallel schema-level requirement per NPC Advisory 2024-04.",
+            "tier_impact": "Decision must be auditable, explainable, and subject to documented human review. No tier impact; process compliance requirement. Both structured-record and prose-level satisfaction required per NPC Advisory 2024-04."
+          }
+        ],
+        "risk_pattern_analysis": {
+          "compounding_pattern_present": true,
+          "pattern_summary": "Five individually explicable, sub-escalation-threshold factors interact to produce a risk profile whose aggregate complexity materially exceeds what ES-03 and TE-05 capture in isolation.",
+          "contributing_factors": [
+            {
+              "factor": "Near-threshold transaction volume (PHP 850,000/mo)",
+              "individual_severity": "moderate",
+              "interaction_note": "PHP 850,000 sits PHP 150,000 below the BSP Circular 1230 (2026) PHP 1M EDD threshold. Individually, the gap is sufficient — the threshold is not met. In combination with a new relationship and dual account purpose (business and remittance), the near-threshold positioning suggests monitoring exposure is compressed: the account could cross the threshold quickly and without a prior behavioral baseline."
+            },
+            {
+              "factor": "Mixed cross-border source of funds (overseas salary savings + inheritance)",
+              "individual_severity": "moderate",
+              "interaction_note": "Each component is individually explicable and documentable. Together, they span two distinct origination events — an extended OFW employment period and an estate settlement — across what is likely more than one jurisdiction. Verification is non-trivial and relies on documentation chains that may involve overseas institutions and Philippine probate proceedings. DC-06 fires on the inheritance component, but the interaction between an overseas salary history and an inheritance event creates a source-of-funds verification burden that exceeds what either component alone would require."
+            },
+            {
+              "factor": "Transitional identity documentation (passport only; PhilSys enrollment in process)",
+              "individual_severity": "low",
+              "interaction_note": "Procedural rather than substantive — the customer is pursuing PhilSys enrollment, not evading it. DC-02 fires but carries zero weight. However, the transitional documentation status means the bank cannot yet rely on the strongest available identity anchor. In combination with a new relationship and a complex source-of-funds profile, the interim documentation gap extends the period during which verification dependencies are unresolved and multiple open items coexist in the file."
+            },
+            {
+              "factor": "Dual account purpose (business and remittance)",
+              "individual_severity": "low",
+              "interaction_note": "Neither purpose is inherently high-risk. Together, they signal an account that may be used for both inward remittance flows and outward business transactions. For a new customer with near-threshold volume and a PEP-adjacent status, the dual purpose amplifies the monitoring surface — transaction pattern review will need to distinguish between legitimate business flows and remittance activity rather than applying a single-purpose behavioral baseline."
+            },
+            {
+              "factor": "PEP-adjacent status (close associate, declared at onboarding)",
+              "individual_severity": "high",
+              "interaction_note": "ES-03 is the decisive hard rule and is treated as such in the decision logic. Its role in the compounding analysis is distinct: the PEP relationship amplifies the risk significance of each other factor. The same near-threshold volume, mixed source of funds, and transitional documentation that would be routine for a non-PEP-adjacent new customer require materially greater scrutiny when the customer has a declared PEP connection — because the BSP and FATF expect the bank to consider whether any beneficial flow or risk exposure passes through the PEP relationship."
+            }
+          ],
+          "interaction_explanation": "Each of the five factors is individually manageable and explicable. Taken together, they produce a profile where multiple verification dependencies remain unresolved simultaneously at the point of onboarding: source of funds requires documentation from two distinct origination events across jurisdictions, identity documentation is in transition, the account purpose is dual and broad, and the PEP connection requires independent relationship verification. The combined effect is that the bank cannot close any single open item in isolation — each remains contingent on the others until the full onboarding documentation package is assembled and reviewed. This is the pattern a senior compliance officer would recognize as warranting EDD procedures structured around the aggregate, not merely procedural compliance with the PEP rule baseline."
+        },
+        "considered_alternatives": [
+          {
+            "alternative_tier": "Standard",
+            "rejection_reason": "Standard tier was considered and rejected on two independent grounds. First, ES-03 forecloses it as a matter of regulatory mandate — PEP close associate status requires EDD regardless of other factors. Second, even setting aside ES-03, TE-05 (new relationship + PHP 850,000 monthly volume ≥ PHP 500K threshold) independently mandates EDD. No scoring path produces a Standard outcome given these two hard rules. Beyond the regulatory floors, the compounding pattern analysis confirms that Standard CDD procedures would be procedurally insufficient to address the aggregate verification burden this profile presents."
+          },
+          {
+            "alternative_tier": "SDD",
+            "rejection_reason": "SDD was not substantively evaluated. ES-03 alone forecloses SDD as a categorical matter; PEP close associate status is incompatible with any reduced-diligence classification under MORB §921, MORB §923, and FATF Recommendation 12. TE-05 provides a second independent bar. No SDD-eligible baseline rule (TE-01, TE-06, TE-08) is satisfiable given the volume, residency status, and customer type in this profile."
+          }
+        ],
+        "recommended_edd_procedures": [
+          {
+            "procedure_id": 1,
+            "description": "Source of funds verification covering both origination components: (a) OFW salary savings — obtain employer documentation, remittance history spanning the declared OFW period, and evidence of the accumulation pathway; (b) Inheritance — obtain estate settlement documents, including inventory of estate assets, court orders or extrajudicial settlement documentation as applicable under Philippine succession law, and evidence that the transfer to the customer has been legally completed. Verification of both components must be documented before tier finalization.",
+            "regulatory_basis": "MORB §921(a); DC-06 (inheritance documentation); FATF Recommendation 12 (source of wealth and source of funds verification for PEP-associated customers)"
+          },
+          {
+            "procedure_id": 2,
+            "description": "Independent verification of the declared PEP relationship: identify the specific PEP, document the nature and basis of the close-associate relationship, and confirm that no beneficial ownership or control interest flows from the PEP to the customer or to any account the customer will operate. The PEP relationship must be assessed at onboarding and re-evaluated on each periodic review thereafter.",
+            "regulatory_basis": "MORB §923; FATF Recommendation 12; BSP Memorandum M-2023-029"
+          },
+          {
+            "procedure_id": 3,
+            "description": "Secondary identity verification to satisfy BSP Circular 1170's requirement that non-PhilSys documents cannot serve as sole identification. Accept passport as primary with a secondary verifying document. Track PhilSys enrollment as an open closure item; upon enrollment completion, update the customer file with PhilSys as primary identification and note the documentation transition in the CDD record.",
+            "regulatory_basis": "BSP Circular 1170; DC-02; RA 11055"
+          },
+          {
+            "procedure_id": 4,
+            "description": "Enhanced ongoing monitoring for the first 12 months, with a structured transaction pattern review at the 6-month mark. The monitoring baseline must account for the dual account purpose (business and remittance) — behavioral analysis should distinguish between business and remittance transaction flows and flag deviations in either channel. Volume monitoring should include an alert threshold at PHP 900,000/month, given the customer's PHP 850,000 declared volume and the PHP 1M BSP Circular 1230 EDD threshold.",
+            "regulatory_basis": "MORB §921(a); MORB §923; FATF Recommendation 12 (enhanced ongoing monitoring for PEP-associated customers); BSP Circular 1230 (2026)"
+          },
+          {
+            "procedure_id": 5,
+            "description": "Senior management approval required before account opening proceeds. Document the approval in the customer file, including the approving officer's name, title, date, and the specific basis for approval. The approval record must be retained as part of the permanent CDD file.",
+            "regulatory_basis": "MORB §923; FATF Recommendation 12; BSP Memorandum M-2023-029"
+          }
+        ],
+        "summary_finding": "Recommended for Enhanced Due Diligence with senior management approval under ES-03 (PEP close associate) and TE-05 (new relationship with expected monthly volume of PHP 850,000, exceeding the PHP 500,000 threshold). Compounding risk pattern across mixed cross-border source of funds, transitional identity documentation, near-threshold volume, and dual account purpose warrants EDD procedures structured around the aggregate verification burden, not PEP compliance alone.",
+        "examiner_notes_full": {
+          "decision_summary": "This customer is recommended for Enhanced Due Diligence (EDD) with senior management approval required before account opening proceeds. The recommendation rests on two independent hard rules: ES-03 (PEP close associate), which mandates EDD and senior approval under MORB §921, MORB §923, and FATF Recommendation 12, and TE-05 (new relationship with expected monthly volume of PHP 850,000, satisfying the ≥PHP 500K/mo threshold), which mandates EDD independently under MORB §921(a). Either rule alone is sufficient to foreclose Standard or SDD classification. Risk score: 45, with 15 from Tier Eligibility rules, 25 from Escalation Triggers, and 5 from Documentation and Process rules. The score is confirmatory and informational; it does not drive the decision. Final decision authority rests with the assigned compliance analyst.",
+          "profile_analysis": "The applicant is a Philippine resident applying to open a combined business and remittance account with an expected monthly volume of PHP 850,000. Source of funds is declared as mixed: overseas salary savings accumulated during a prior OFW period, and an inheritance. The applicant presents a passport as primary identification; PhilSys enrollment is in process but not yet complete. PEP status is declared at onboarding as close associate of a Philippine PEP. Sanctions screening returned clean. Adverse media screening returned no findings. The account is new — no prior banking relationship exists with this institution.",
+          "rule_application_and_risk_pattern": "ES-03 fires on the declared PEP close-associate status and is decisive: it mandates EDD with senior management approval regardless of any other factor. TE-05 fires on the combination of a new banking relationship and expected monthly volume of PHP 850,000 — the threshold comparison is explicit: PHP 850,000 ≥ PHP 500,000, satisfying TE-05's volume condition alongside the new-relationship condition. TE-05 provides a second independent hard-rule floor at EDD. DC-06 fires on the inheritance component of the mixed source of funds, requiring estate settlement documentation. DC-02 fires on the non-PhilSys identity document — passport cannot serve as sole identification under BSP Circular 1170 and secondary verification is required. DC-07 fires as required on this AI-generated recommendation. Volume threshold arithmetic was performed: PHP 850,000 is below the BSP Circular 1230 (2026) PHP 1M threshold, so TE-03 does not fire; TE-05's lower PHP 500K threshold is what applies and is satisfied.\n\nBeyond the rule-level findings, the profile presents a compounding pattern that warrants documentation in the audit record. Five individually explicable factors — PEP-adjacent status, near-threshold volume, mixed cross-border source of funds, transitional identity documentation, and dual account purpose — interact in a manner that produces an aggregate verification burden exceeding what any single factor would require. The bank cannot resolve any individual open item in isolation: source-of-funds verification spans two origination events and likely more than one jurisdiction; identity documentation is in transition; the PEP relationship requires independent verification of both its nature and any beneficial-interest implications; and the dual account purpose means behavioral monitoring baselines must be established across two distinct transaction channels simultaneously. A senior compliance officer reviewing this profile whole would treat the combination differently than they would treat the PEP rule in isolation — the EDD procedures specified below are structured accordingly.",
+          "considered_alternatives": "Standard tier was considered and rejected on two independent grounds. ES-03 forecloses Standard as a matter of regulatory mandate — PEP close associate status requires EDD under MORB §923 and FATF Recommendation 12 regardless of score or other profile characteristics. TE-05 provides a second independent bar: the combination of a new relationship and PHP 850,000 monthly volume independently mandates EDD under MORB §921(a). No scoring path produces a Standard outcome with these two hard rules in effect. SDD was not substantively evaluated: ES-03 alone is categorically incompatible with any reduced-diligence classification, and no SDD-eligible baseline rule (TE-01, TE-06, or TE-08) is satisfiable given this customer's volume, residency status, and declared customer type.",
+          "recommended_edd_procedures": "The following procedures are required before account opening proceeds and must be documented in the permanent CDD file. (1) Source of funds verification covering both origination components: for the OFW salary savings, obtain employer documentation, remittance history spanning the OFW period, and evidence of the accumulation pathway; for the inheritance, obtain estate settlement documents including court orders or extrajudicial settlement documentation as applicable under Philippine succession law and evidence that the transfer has been legally completed. Both components must be verified and documented before tier finalization. Regulatory basis: MORB §921(a), DC-06, FATF Recommendation 12. (2) Independent verification of the declared PEP relationship: identify the specific PEP, document the nature and basis of the close-associate relationship, and confirm that no beneficial ownership or control interest flows from the PEP to the customer or to any account the customer will operate. The PEP relationship must be assessed at onboarding and re-evaluated at each periodic review. Regulatory basis: MORB §923, FATF Recommendation 12, BSP Memorandum M-2023-029. (3) Secondary identity verification to satisfy BSP Circular 1170's requirement that non-PhilSys documents cannot serve as sole identification. Passport is acceptable as primary with a secondary verifying document. PhilSys enrollment must be tracked as an open closure item; upon completion, update the customer file and note the documentation transition in the CDD record. Regulatory basis: BSP Circular 1170, DC-02, RA 11055. (4) Enhanced ongoing monitoring for the first 12 months, with a structured transaction pattern review at the 6-month mark. Monitoring must account for the dual business-and-remittance account purpose, with behavioral analysis distinguishing between the two transaction channels. Volume monitoring should include an alert threshold calibrated to the PHP 1M BSP Circular 1230 EDD ceiling, given the customer's PHP 850,000 declared volume. Regulatory basis: MORB §921(a), MORB §923, FATF Recommendation 12, BSP Circular 1230 (2026). (5) Senior management approval documented in the customer file before account opening, including the approving officer's name, title, date, and basis for approval. Regulatory basis: MORB §923, FATF Recommendation 12, BSP Memorandum M-2023-029.",
+          "audit_trail": "This recommendation was generated by the AI reasoning layer on 2026-05-10T00:00:00Z, applied against Ruleset v1, and is presented to the assigned compliance analyst for final review and documented decision per NPC Advisory 2024-04. All factors evaluated, rules fired, threshold arithmetic performed, and reasoning steps — including the compounding-pattern analysis — are recorded in this decision document. DC-07 is satisfied at both the structured-record level (appearance in rules_fired) and the prose level (this section). Human review and documented approval are required before account opening proceeds. The compliance analyst's decision — Approve, Escalate further, or Override — must be recorded in the permanent CDD file. This AI-generated recommendation does not constitute a final credit, compliance, or regulatory decision."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-10T00:00:00Z",
+          "model": "claude-sonnet-4-6"
+        }
+      },
+      "pass_2": {
+        "overall_status": "PASS",
+        "correction_required": false,
+        "audit_summary": "Pass 1 output for Carlos M. (Persona B) audited against the customer profile and Ruleset v1. Five rules fired correctly (ES-03, TE-05, DC-06, DC-02, DC-07). Hard-rule EDD determination is correct and doubly grounded. Score arithmetic reconciles at 45. DC-07 dual-satisfaction requirement met. Compounding pattern analysis is substantive and grounded in actual profile data. No critical, material, or quality violations found.",
+        "independence_attestation": {
+          "independent_assessment_completed": true,
+          "method_note": "Reviewed customer profile and Ruleset v1 to derive independent rule-firing assessment before reading Pass 1 output. Performed explicit threshold arithmetic for TE-05 (PHP 850,000 vs PHP 500,000 floor), TE-03 (PHP 850,000 vs PHP 1,000,000 ceiling), and TE-02 volume band (PHP 850,000 vs PHP 50K–500K range). Verified DC-07 dual-satisfaction: presence in rules_fired (structured record) and substantive audit_trail prose (prose level). Evaluated compounding pattern against the three-or-more-moderate-factors standard. Completed independent score arithmetic and hard-rule floor determination before comparing to Pass 1 structured decision and examiner notes."
+        },
+        "checks": [
+          {
+            "check_id": "hard_rule_floor_ES-03",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-03 (PEP close associate) hard-rule EDD floor applied correctly",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares PEP status as close associate at onboarding. ES-03 fires and mandates EDD with senior management approval under MORB §923 and FATF Recommendation 12. Pass 1 correctly identifies ES-03 as decisive, correctly sets recommended_tier to EDD, correctly sets senior_approval_required to true, and correctly notes that ES-03 alone forecloses Standard and SDD regardless of score outcome. Hard-rule floor is applied, not downgraded.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §923; FATF Recommendation 12; BSP Memorandum M-2023-029",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_TE-05",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-05 (new relationship + high volume) hard-rule EDD floor applied correctly",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile presents new banking relationship with expected monthly volume of PHP 850,000. Both trigger conditions are satisfied: years_with_bank = new AND PHP 850,000 ≥ PHP 500,000. TE-05 fires and mandates EDD independently under MORB §921(a). Pass 1 correctly identifies TE-05 as a second independent hard rule, correctly notes it would mandate EDD absent ES-03, and correctly documents both conditions in trigger_evidence. Multi-decisive-rule handling (decisive_rule_ids: [ES-03, TE-05]) is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES-03",
+            "check_type": "rule_firing",
+            "check_description": "ES-03 (PEP — close associate) firing verified",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares pep_status = close associate. ES-03 trigger condition is met. Rule fires correctly with weight 25 assigned to escalation_triggers category. Trigger evidence is specific and accurate: PEP relationship declared at onboarding, sanctions screening clean, relationship disclosed rather than inferred. No fabrication; rule exists in Ruleset v1.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921; MORB §923; FATF R.12",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE-05",
+            "check_type": "rule_firing",
+            "check_description": "TE-05 (new relationship + high volume) firing verified",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile presents years_with_bank = new and expected_monthly_volume_php = 850,000. Both trigger conditions satisfied. Rule fires correctly with weight 15 assigned to tier_eligibility category (correct per category convention — TE-05 is a Tier Eligibility table rule regardless of its hard-rule EDD impact). Trigger evidence correctly documents both conditions and states the threshold comparison explicitly.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE-05_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-05 volume threshold arithmetic: PHP 850,000 vs PHP 500,000 floor",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-05 requires expected monthly volume ≥ PHP 500,000 alongside new relationship status. Profile value satisfies the threshold. Firing is arithmetically supported.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 850,000/mo",
+            "rule_threshold": "≥PHP 500,000/mo",
+            "comparison_result": "850,000 is greater than or equal to 500,000 — threshold satisfied"
+          },
+          {
+            "check_id": "threshold_TE-03_volume_considered",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-03 volume threshold arithmetic: PHP 850,000 vs PHP 1,000,000 ceiling (considered-and-rejected)",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03 requires expected monthly volume ≥ PHP 1,000,000 per BSP Circular 1230 (2026). Profile volume of PHP 850,000 does not meet this threshold. Correct non-fire. Pass 1's examiner notes explicitly acknowledge the PHP 850,000 vs PHP 1,000,000 comparison and correctly identify that TE-03 does not fire while TE-05's lower PHP 500K threshold is the operative rule.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": "PHP 850,000/mo",
+            "rule_threshold": "≥PHP 1,000,000/mo",
+            "comparison_result": "850,000 is less than 1,000,000 — threshold not satisfied; TE-03 correctly did not fire"
+          },
+          {
+            "check_id": "threshold_TE-02_volume_band_considered",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-02 volume band arithmetic: PHP 850,000 vs PHP 50K–500K Standard band (considered-and-rejected)",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-02 Standard baseline applies to expected volume in the PHP 50K–500K/mo band. Profile volume of PHP 850,000 is above the PHP 500K upper bound of the TE-02 band. Correct non-fire. TE-05 governs the new-relationship-plus-high-volume pattern; TE-02 is correctly inapplicable.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 850,000/mo",
+            "rule_threshold": "PHP 50,000–500,000/mo",
+            "comparison_result": "850,000 is above the PHP 500,000 upper bound of the TE-02 band — TE-02 correctly did not fire"
+          },
+          {
+            "check_id": "rule_check_DC-06",
+            "check_type": "rule_firing",
+            "check_description": "DC-06 (source of funds — inheritance) firing verified",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile source_of_funds = mixed, including inheritance component. DC-06 trigger condition requires inheritance as any component of declared source of funds; mixed declaration satisfies this. Rule fires correctly with weight 5 assigned to documentation_process category. Trigger evidence correctly identifies that DC-06 fires on the inheritance component regardless of whether the overall source-of-funds is singular or mixed.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a); DC-06",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_DC-02",
+            "check_type": "rule_firing",
+            "check_description": "DC-02 (single non-PhilSys ID limitation) firing verified",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile identity_document_type = passport (PhilSys enrollment in process). Passport is a non-PhilSys document; DC-02 fires requiring secondary verification. Rule correctly assigned weight 0. Trigger evidence correctly identifies the limitation and the tracking requirement for PhilSys enrollment closure. No tier impact claimed; correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1170; RA 11055",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_DC-07",
+            "check_type": "rule_firing",
+            "check_description": "DC-07 (NPC AI accountability) present in rules_fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-07 appears in Pass 1's rules_fired array with category documentation_process, weight 0, and trigger evidence correctly noting the recommendation was generated by an AI reasoning layer. DC-07 fires on every AI-generated recommendation by virtue of the recommendation being AI-generated; this condition is met. Structured-record satisfaction confirmed.",
+            "confidence_basis": null,
+            "regulatory_citation": "NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE-10_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-10 (unclear source of funds) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile source_of_funds = mixed (overseas salary savings + inheritance). Both components are declared and documentable — overseas salary savings via OFW employment history, inheritance via estate settlement. The source of funds is complex and verification-intensive, but it is declared and characterizable, not unclear or unverifiable. TE-10 requires source_of_funds = unclear OR cannot be substantiated; that condition is not met. Correct non-fire.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a); AMLA §9",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES-04_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-04 (sanctions hit) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile sanctions_screening = clean. ES-04 trigger requires sanctions screening = hit. Condition not met; correct non-fire. No decline or STR action warranted.",
+            "confidence_basis": null,
+            "regulatory_citation": "UNSCR via MORB §923; AMLA",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES-06_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-06 (high-risk jurisdiction connection) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile high_risk_jurisdiction_connection = none. ES-06 trigger requires a personal, business, or combined connection to a high-risk jurisdiction. Condition not met; correct non-fire.",
+            "confidence_basis": null,
+            "regulatory_citation": "FATF R.10; MORB §921",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES-07_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-07 (adverse media — confirmed) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile adverse_media = no. ES-07 trigger requires adverse media = yes. Condition not met; correct non-fire.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921; NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES-08_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-08 (adverse media — unclear) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile adverse_media = no (not unclear, not yes). ES-08 trigger requires adverse_media = unclear. Condition not met; correct non-fire.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE-06_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-06 (OFW remittance profile) correctly did not fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-06 requires residency = OFW. Profile residency_status = PH resident. Condition not met; correct non-fire. The profile references a prior OFW period as source of savings, but the customer's current status is PH resident, not OFW. TE-06 assesses current residency status, not prior employment history.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_arithmetic",
+            "check_type": "score_arithmetic",
+            "check_description": "Risk score total and category breakdown reconciliation",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 reports risk_score.total = 45. Independent arithmetic: ES-03 (+25) + TE-05 (+15) + DC-06 (+5) + DC-02 (0) + DC-07 (0) = 45. Match confirmed. Category breakdown: tier_eligibility = 15 (TE-05), escalation_triggers = 25 (ES-03), documentation_process = 5 (DC-06; DC-02 and DC-07 both 0). Breakdown sums to 45. Category assignments are correct per the ruleset's category convention (table membership, not tier-impact severity).",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_band_mapping",
+            "check_type": "score_band_mapping",
+            "check_description": "Score band mapping correctness",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 reports score_band = 31+ and total score = 45. Score of 45 falls within the 31+ band per Ruleset v1. Score-band mapping is correct. Pass 1 also correctly notes that the score is confirmatory and not decisional given the two hard rules, which is the accurate characterization for a hard-rule EDD determination.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "decision_basis_consistency",
+            "check_type": "decision_basis_consistency",
+            "check_description": "Decision basis field consistent with fired rules",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 sets decision_basis = hard_rule. Two hard rules fired independently (ES-03, TE-05). Setting decision_basis to hard_rule is correct and required — score_based would be a downgrade error on a profile where hard rules govern. The score_vs_decision_note correctly explains the relationship between the confirmatory score and the decisive hard rules.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "senior_approval_flag",
+            "check_type": "consistency",
+            "check_description": "Senior management approval flag correctly set",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 sets senior_approval_required = true. ES-03 (PEP close associate) mandates senior management approval under MORB §923 and FATF Recommendation 12 per the ruleset's ES-03 tier_impact and the clarifying note in the ES table. The requirement applies to close associates, not only to the PEP themselves — consistent with the Decision 25 ruleset edit. Flag is correctly set.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §923; FATF R.12; BSP Memorandum M-2023-029",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "onboarding_hold_flag",
+            "check_type": "consistency",
+            "check_description": "Onboarding hold flag correctly set",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 sets onboarding_hold = false and hold_reason = null. No sanctions-pending (ES-05) condition exists on this profile; sanctions screening is clean. Onboarding is not placed on hold — it proceeds to EDD procedures with senior approval required before account opening. Hold flag correctly not applied.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "pattern_substance",
+            "check_type": "pattern_substance",
+            "check_description": "Compounding pattern analysis substance and grounding",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 sets compounding_pattern_present = true and identifies five contributing factors: near-threshold transaction volume (PHP 850,000/mo), mixed cross-border source of funds, transitional identity documentation, dual account purpose, and PEP-adjacent status. Each factor is grounded in specific profile data. Interaction explanations are substantive and specific to this profile — not generic compliance boilerplate. The aggregate-verification-burden framing (multiple open items coexisting and each contingent on the others) is analytically coherent and goes beyond reciting the fired rules. Pattern analysis meets the three-or-more-moderate-interacting-factors standard.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "considered_alternatives",
+            "check_type": "consistency",
+            "check_description": "Considered alternatives completeness and accuracy",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 evaluates Standard and SDD as alternatives and rejects both. Standard is rejected on two independent grounds (ES-03 mandate and TE-05 mandate) — correct. SDD is categorically foreclosed by ES-03 (PEP close associate is incompatible with any reduced-diligence classification under MORB §921, MORB §923, and FATF R.12) and further barred by TE-05 — correct. No SDD-eligible baseline rule (TE-01, TE-06, TE-08) is satisfiable given this profile's characteristics — correct characterization. No alternatives are missing.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "dc07_documentation",
+            "check_type": "dc07_documentation",
+            "check_description": "DC-07 dual-satisfaction: structured record and prose level",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Structured-record half: DC-07 appears in rules_fired with category documentation_process, weight 0, and trigger evidence noting the recommendation is AI-generated. Satisfied. Prose-level half: audit_trail section is substantive — it references the AI reasoning layer as the source of the recommendation, names the ruleset version (v1), the generation timestamp, the analyst's retained final decision authority, the requirement for documented human review, and the compliance analyst's required choice (Approve, Escalate, or Override). Both halves of the dual-satisfaction requirement are met per Decision 4 and Decision 25 corollary.",
+            "confidence_basis": null,
+            "regulatory_citation": "NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "examiner_notes_completeness",
+            "check_type": "consistency",
+            "check_description": "Required examiner notes sections present",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "All six required sections are present in examiner_notes_full: decision_summary, profile_analysis, rule_application_and_risk_pattern, considered_alternatives, recommended_edd_procedures, and audit_trail. Each section is populated with substantive content, not placeholder text.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "register_examiner_notes",
+            "check_type": "register_compliance",
+            "check_description": "Examiner notes register: no AI self-reference, no hedging, institutional voice maintained",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Examiner notes analytical sections use committed, direct prose without AI self-reference (no 'I have determined,' 'based on my analysis') and without hedging language (no 'I believe,' 'it appears,' 'perhaps'). Regulatory citations are inline and specific. The profile_analysis and rule_application_and_risk_pattern sections read in institutional compliance register. The recommended_edd_procedures are numbered, specific, and include regulatory bases for each. Register meets the standard.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "summary_finding_consistency",
+            "check_type": "consistency",
+            "check_description": "Summary finding consistent with structured decision",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 summary_finding states: 'Recommended for Enhanced Due Diligence with senior management approval under ES-03 (PEP close associate) and TE-05 (new relationship with expected monthly volume of PHP 850,000, exceeding the PHP 500,000 threshold).' This is consistent with the structured decision: recommended_tier = EDD, decision_basis = hard_rule, decisive_rule_ids = [ES-03, TE-05], senior_approval_required = true. No contradiction between structured fields and prose.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          }
+        ],
+        "violation_summary": {
+          "critical_count": 0,
+          "material_count": 0,
+          "quality_count": 0,
+          "violation_categories": []
+        },
+        "pass_3_targeting": {
+          "target_check_ids": [],
+          "regeneration_scope": "none",
+          "preservation_note": "Pass 1 output is correct in all audited dimensions. No regeneration required. All rule firings, threshold arithmetic, score arithmetic, category breakdowns, hard-rule floors, senior approval flag, DC-07 dual-satisfaction, compounding pattern analysis, considered alternatives, examiner notes completeness, register compliance, and summary finding consistency passed. Pass 3 must not be invoked."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-10T00:00:00Z",
+          "model": "claude-sonnet-4-6",
+          "audit_against_pass_1_id": "Carlos_M_Persona_B_Pass1_2026-05-10T00:00:00Z_ruleset_v1"
+        }
+      }
+    },
+    {
+      "id": "persona_c",
+      "name": "Convergent Hybrid",
+      "descriptor": "Self-employed, high-risk jurisdiction — convergent EDD",
+      "profile": {
+        "customer_reference": "Persona C — convergent hybrid",
+        "occupation_type": "business owner",
+        "residency_status": "PH resident",
+        "source_of_funds": "business",
+        "expected_monthly_volume_php": 750000,
+        "pep_status": "none",
+        "sanctions_screening": "clean",
+        "high_risk_jurisdiction_connection": "business",
+        "customer_type": "individual retail",
+        "account_purpose": "business",
+        "years_with_bank": "1-3",
+        "identity_document_type": "PhilSys",
+        "adverse_media": "unclear"
+      },
+      "pass_1": {
+        "decision": {
+          "recommended_tier": "EDD",
+          "decision_basis": "hard_rule",
+          "decisive_rule_ids": [
+            "ES-06"
+          ],
+          "senior_approval_required": false,
+          "onboarding_hold": false,
+          "hold_reason": "ES-08 (adverse media unclear) requires human review and clearance before tier finalization. Onboarding may proceed to documentation stage but tier must not be finalized until adverse media review is complete."
+        },
+        "risk_score": {
+          "total": 40,
+          "category_breakdown": {
+            "tier_eligibility": 5,
+            "escalation_triggers": 35,
+            "documentation_process": 0
+          },
+          "score_band": "31+",
+          "score_vs_decision_note": "Score: 40 — EDD also supported by score-based logic (31+ band), but the recommendation is anchored by hard-rule minimum under ES-06. Score is corroborative, not decisional."
+        },
+        "rules_fired": [
+          {
+            "rule_id": "ES-06",
+            "rule_name": "High-risk jurisdiction connection",
+            "category": "escalation",
+            "weight": 25,
+            "trigger_evidence": "Customer profile declares high_risk_jurisdiction_connection = 'business'. Business owner with account purpose = business and source of funds = business indicates that the business operations include activity with or through a high-risk jurisdiction, as declared at onboarding.",
+            "tier_impact": "Mandatory EDD required under FATF R.10 and MORB §921. This is a hard-rule floor that cannot be downgraded by score."
+          },
+          {
+            "rule_id": "ES-08",
+            "rule_name": "Adverse media — unclear, requires review",
+            "category": "escalation",
+            "weight": 10,
+            "trigger_evidence": "adverse_media = 'unclear'. Screening has not returned a clean result; findings are ambiguous and require human review before tier finalization can proceed.",
+            "tier_impact": "Sets Standard minimum (subsumed by ES-06's EDD mandate). Requires human review and explicit clearance before tier is finalized. Does not suspend onboarding but does block tier finalization."
+          },
+          {
+            "rule_id": "TE-09",
+            "rule_name": "Business owner, sole proprietor",
+            "category": "tier_eligibility",
+            "weight": 5,
+            "trigger_evidence": "occupation_type = 'business owner', account_purpose = 'business', source_of_funds = 'business'. All three conditions of the rule are satisfied.",
+            "tier_impact": "Standard minimum baseline for business owner profile. EDD required if other triggers fire — confirmed by ES-06."
+          },
+          {
+            "rule_id": "DC-01",
+            "rule_name": "PhilSys / PhilID acceptance",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "identity_document_type = 'PhilSys'. Primary identification is a PhilSys card.",
+            "tier_impact": "Acceptable as sole primary identification per RA 11055. e-KYC eligible. No secondary verification deficiency. Documentation process is clean on identity."
+          },
+          {
+            "rule_id": "DC-07",
+            "rule_name": "NPC AI accountability disclosure",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "This tier recommendation was generated by an AI reasoning layer. DC-07 fires on every AI-generated recommendation by virtue of the recommendation being AI-generated. Documented rationale and human review per NPC Advisory 2024-04 are required.",
+            "tier_impact": "Process rule. Recommendation must be auditable and explainable; human compliance analyst review and documented decision are required before account opening proceeds. Substantive satisfaction recorded in audit_trail section of examiner notes."
+          }
+        ],
+        "risk_pattern_analysis": {
+          "compounding_pattern_present": true,
+          "pattern_summary": "High-risk jurisdiction business exposure, unresolved adverse media screening, material transaction volume, and a relatively short banking relationship converge into a profile where each factor amplifies the risk significance of the others.",
+          "contributing_factors": [
+            {
+              "factor": "High-risk jurisdiction business connection",
+              "individual_severity": "high",
+              "interaction_note": "Alone, this factor is decisive (ES-06 hard rule). In combination with unclear adverse media, the possibility that the adverse media relates to the high-risk jurisdiction business activities elevates the priority and scope of the adverse media review before finalization."
+            },
+            {
+              "factor": "Adverse media — unclear",
+              "individual_severity": "moderate",
+              "interaction_note": "An unresolved adverse media finding on any customer requires human review. Against a business owner with declared high-risk jurisdiction exposure and material volume, the unresolved nature of the finding is materially more significant than it would be on a salaried low-volume domestic profile. The clearing threshold should be higher, and the scope of review broader."
+            },
+            {
+              "factor": "Expected monthly volume PHP 750,000",
+              "individual_severity": "moderate",
+              "interaction_note": "PHP 750,000 sits in the upper mid-band — below the BSP Circular 1230 EDD threshold of PHP 1M but substantial in absolute terms. At this volume, any adverse media finding or high-risk jurisdiction activity has proportionally greater financial exposure. The volume does not independently change the tier, but it raises the stakes of the unresolved adverse media and jurisdiction factors."
+            },
+            {
+              "factor": "Banking relationship 1–3 years",
+              "individual_severity": "low",
+              "interaction_note": "Not a new relationship, but not a long-standing one either. Transaction history is available for review but may not span a full business cycle. For a business owner with high-risk jurisdiction exposure, a deeper transactional pattern review is warranted than for an equivalent customer with a 5+ year relationship and established baseline behavior."
+            }
+          ],
+          "interaction_explanation": "The combination of ES-06 (high-risk jurisdiction business connection) and ES-08 (unclear adverse media) creates a specific risk interaction: the adverse media review cannot be treated in isolation from the high-risk jurisdiction context. If the adverse media relates to the business operations, the jurisdiction connection becomes an amplifying factor; if the adverse media is unrelated, the two risks remain independent but both must be cleared. The PHP 750,000 monthly volume means that the operational window between onboarding and tier finalization carries material financial exposure if either factor resolves unfavorably. This compounding pattern does not change the tier recommendation — ES-06 is decisive — but it directly governs the scope and sequencing of the recommended EDD procedures."
+        },
+        "considered_alternatives": [
+          {
+            "alternative_tier": "Standard",
+            "rejection_reason": "ES-06 fires unconditionally on the declared high-risk jurisdiction business connection, setting a mandatory EDD floor under FATF R.10 and MORB §921. Standard tier cannot be adopted where a hard-rule EDD minimum applies, regardless of other factors. The TE-09 baseline (Standard minimum for business owners) is superseded by ES-06. Independently, the risk score of 40 places the profile in the 31+ EDD band, meaning score-based logic also supports EDD. Standard is rejected on both hard-rule and score-based grounds."
+          },
+          {
+            "alternative_tier": "SDD",
+            "rejection_reason": "SDD is foreclosed on multiple grounds: ES-06 mandates EDD, the risk score of 40 is well above the 0–10 SDD-eligible band, and TE-09 establishes Standard as the baseline for business owner profiles in any case. SDD was not a realistic alternative and is noted only for audit completeness."
+          }
+        ],
+        "recommended_edd_procedures": [
+          {
+            "procedure_id": 1,
+            "description": "High-risk jurisdiction business activity documentation. Obtain details of the specific jurisdiction(s) connected to the business operations, the nature of the business activity in or through those jurisdictions, and documentation of the counterparties or business relationships involved (contracts, invoices, incorporation documents for any connected entities). The EDD scope should be proportionate to the volume of activity — PHP 750,000 monthly volume implies material ongoing transactions with or through the identified jurisdiction(s).",
+            "regulatory_basis": "FATF R.10, MORB §921; ES-06 mandatory EDD trigger"
+          },
+          {
+            "procedure_id": 2,
+            "description": "Adverse media review and clearance prior to tier finalization. A compliance analyst must review the adverse media screening output, assess whether findings relate to the customer's business operations or the high-risk jurisdiction connection, and document a written clearance or escalation decision. Tier finalization must not proceed until this review is complete and documented. If findings are confirmed, ES-07 applies and the recommendation must be re-evaluated.",
+            "regulatory_basis": "MORB §921; ES-08 human review requirement; NPC Advisory 2024-04 (documented human review)"
+          },
+          {
+            "procedure_id": 3,
+            "description": "Source of funds and business legitimacy verification. Source of funds is declared as 'business' — obtain documentation substantiating the business's revenue base, such as audited financials, BIR returns, or bank statements showing business income consistent with the PHP 750,000 declared volume. For business owners with high-risk jurisdiction connections, source of funds verification must extend to any cross-border income streams.",
+            "regulatory_basis": "MORB §921(a), AMLA §9; TE-09 business owner EDD elevation; FATF R.10"
+          },
+          {
+            "procedure_id": 4,
+            "description": "Transaction pattern review at 6-month mark. Given the convergence of high-risk jurisdiction exposure, adverse media uncertainty, and material volume in a relatively short banking relationship, an enhanced ongoing monitoring flag should be set for the first 12 months, with a mandatory transaction pattern review at the 6-month mark to assess whether actual transaction behavior is consistent with the declared business profile and volume.",
+            "regulatory_basis": "MORB §921; BSP Memorandum M-2026-005 (per-customer EDD basis); FATF R.10 ongoing monitoring"
+          }
+        ],
+        "summary_finding": "Recommended for Enhanced Due Diligence under ES-06 (high-risk jurisdiction business connection), with tier finalization held pending adverse media clearance under ES-08. Compounding risk pattern across high-risk jurisdiction exposure, unresolved adverse media, material PHP 750,000 monthly volume, and a 1–3 year banking relationship requires EDD procedures that address the jurisdiction-media interaction, not each factor in isolation.",
+        "examiner_notes_full": {
+          "decision_summary": "This customer is recommended for Enhanced Due Diligence (EDD). The recommendation is anchored by a mandatory escalation under ES-06 (high-risk jurisdiction connection — business), which sets an unconditional EDD floor under FATF Recommendation 10 and MORB §921. No senior management approval is required — the profile presents no PEP relationship. However, tier finalization is contingent on clearance of an adverse media screening result that is currently unresolved (ES-08); the tier recommendation stands as EDD, but the account must not be fully opened until a compliance analyst has reviewed and documented a disposition on the adverse media finding. Risk score: 40, in the 31+ EDD band. The score is corroborative — ES-06 is decisive on its own.",
+          "profile_analysis": "The applicant is a Philippine resident business owner with an account purpose and source of funds both declared as business. Expected monthly volume is PHP 750,000. Identity documentation is PhilSys — primary identification is clean and fully acceptable under RA 11055 and BSP Circular 1170 with no secondary verification deficiency. The banking relationship is 1–3 years in duration. PEP status is none. Sanctions screening is clean. The two risk-bearing flags in the profile are: (1) a declared high-risk jurisdiction connection in the business dimension, with no further detail provided at this stage on the specific jurisdiction or nature of the activity; and (2) an adverse media screening result categorized as unclear, meaning the screening has returned ambiguous findings that have not been resolved to clean. The customer has not yet been onboarded and is at the pre-decisioning stage.",
+          "rule_application_and_risk_pattern": "ES-06 fires on the declared high-risk jurisdiction business connection and is the decisive rule. FATF Recommendation 10 and MORB §921 require mandatory EDD for customers with high-risk jurisdiction connections regardless of other profile characteristics; no further analysis is required to establish the EDD minimum. TE-09 fires on the business owner profile (occupation = business owner, account purpose = business, source of funds = business), establishing a Standard baseline and noting that EDD is required if other triggers fire — confirmed by ES-06. ES-08 fires on the unclear adverse media result, adding a Standard minimum floor (subsumed by ES-06) and mandating human review before tier finalization. DC-01 fires confirming PhilSys as acceptable primary identification. DC-07 fires on the AI-generated nature of this recommendation per NPC Advisory 2024-04.\n\nBeyond rule application, the profile presents a compounding pattern that informs the recommended EDD procedures. The convergence of high-risk jurisdiction business exposure, an unresolved adverse media finding, PHP 750,000 monthly volume, and a 1–3 year banking relationship creates a specific risk interaction that warrants treatment beyond what ES-06 alone would require. The adverse media review cannot be conducted as an isolated administrative step: if the unclear findings relate to the customer's business operations or to activity in or through the high-risk jurisdiction, the two risk factors reinforce each other materially. At PHP 750,000 monthly volume, the financial exposure during the period between onboarding and any adverse resolution is significant. The 1–3 year relationship provides some transactional history for review, but the tenure is not long enough to establish a behavioral baseline that would offset the unresolved screening concern. None of these factors independently elevates the tier beyond what ES-06 already mandates — but together they define the scope and sequencing of EDD procedures that a standard high-risk-jurisdiction review package alone would not capture.",
+          "considered_alternatives": "Standard tier was considered and rejected on two independent grounds. First, ES-06 fires unconditionally on the declared high-risk jurisdiction business connection, establishing a mandatory EDD floor that Standard cannot satisfy; the hard-rule minimum cannot be downgraded by other profile characteristics or by score. Second, the risk score of 40 places the profile in the 31+ EDD band under score-based logic, meaning EDD is also supported independently of the hard rule. The TE-09 baseline establishes Standard as the floor for business owner profiles absent other triggers, but that baseline is superseded here on both grounds. SDD was not a viable alternative on any basis — ES-06, TE-09, and the risk score all foreclose it — and is noted for audit completeness only.",
+          "recommended_edd_procedures": "The following EDD procedures are required, sequenced to address the compounding pattern identified above. (1) High-risk jurisdiction business activity documentation: obtain the specific jurisdiction(s) connected to the business, the nature of the activity, and documentation of counterparties or connected entities (contracts, invoices, incorporation documents). Given PHP 750,000 monthly volume, the documentation scope should reflect material ongoing activity, not incidental contact — per FATF R.10 and MORB §921. (2) Adverse media review and clearance prior to tier finalization: a compliance analyst must review the screening output, assess whether findings relate to the business operations or the high-risk jurisdiction connection, and produce a written disposition. Tier finalization is blocked until this step is complete and documented; if findings are confirmed, ES-07 applies and the recommendation must be re-evaluated — per MORB §921, ES-08, and NPC Advisory 2024-04. (3) Source of funds and business legitimacy verification: obtain documentation substantiating the business's revenue base consistent with the PHP 750,000 declared volume — BIR returns, audited financials, or business bank statements. For business owners with high-risk jurisdiction connections, verification must extend to any cross-border income streams — per MORB §921(a), AMLA §9, and FATF R.10. (4) Enhanced ongoing monitoring with a 6-month transactional review: given the convergence of risk factors in a relationship of limited tenure, an enhanced monitoring flag should be set for the first 12 months, with a mandatory transaction pattern review at the 6-month mark to confirm actual behavior is consistent with the declared business profile and volume — per MORB §921 and BSP Memorandum M-2026-005.",
+          "audit_trail": "This recommendation was generated by the AI reasoning layer on [timestamp], audited against the full 25-rule CDD ruleset (Ruleset v1, current as of May 2026), and presented to the assigned compliance analyst for final approval per NPC Advisory 2024-04. All factors evaluated, rules fired, and reasoning steps — including threshold arithmetic and compounding pattern analysis — are logged in the immutable decision record. Human review and documented decision are required before tier finalization proceeds; under ES-08, adverse media clearance must be documented as a prerequisite step. The compliance analyst retains full authority to Approve, Escalate, or Override this recommendation."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-09T00:00:00+08:00",
+          "model": "claude-sonnet-4-6"
+        }
+      },
+      "pass_2": {
+        "overall_status": "PASS",
+        "correction_required": false,
+        "audit_summary": "Pass 1 output for Persona C (convergent hybrid) audited against the customer profile and CDD ruleset v1. Independent re-derivation confirms the EDD recommendation, all rule firings, score arithmetic, decision basis, and examiner notes. No violations identified across rule-firing, threshold arithmetic, score computation, decision consistency, pattern substance, register compliance, or DC-07 dual satisfaction. Pass 1 output is accurate and defensible.",
+        "independence_attestation": {
+          "independent_assessment_completed": true,
+          "method_note": "Independent rule-firing assessment derived from customer profile and ruleset before reviewing Pass 1's conclusions. Explicit threshold arithmetic performed for TE-01 (volume <PHP 50K), TE-02 (volume PHP 50K–500K), TE-03 (volume ≥PHP 1M), and TE-05 (new + ≥PHP 500K) to verify correct non-firing on numeric grounds. ES-06 and ES-08 trigger conditions verified categorically (no numeric threshold components). DC-07 dual-satisfaction verified: structured-record presence in rules_fired and prose-level substantive audit_trail independently confirmed."
+        },
+        "checks": [
+          {
+            "check_id": "hard_rule_floor_ES-06",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-06 hard-rule EDD floor — correctly applied as decisive rule",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-06 fires on high_risk_jurisdiction_connection = 'business'. Pass 1 correctly identifies ES-06 as the decisive hard rule mandating EDD, sets decision_basis = 'hard_rule', and lists ES-06 as the sole entry in decisive_rule_ids. The EDD floor cannot be downgraded by score or other profile characteristics; Pass 1 applies this correctly. Senior management approval is not triggered — no PEP rule fires — and Pass 1 correctly sets senior_approval_required = false.",
+            "confidence_basis": "ES-06 trigger: high_risk_jurisdiction_connection = 'business' — condition met. Hard-rule EDD mandate per MORB §921 and FATF R.10 confirmed against ruleset.",
+            "regulatory_citation": "MORB §921, FATF R.10"
+          },
+          {
+            "check_id": "rule_check_TE-09",
+            "check_type": "rule_firing",
+            "check_description": "TE-09 (business owner, sole proprietor) — correct fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-09 fires on occupation_type = 'business owner', account_purpose = 'business', source_of_funds = 'business'. All three trigger conditions are satisfied by the profile. Pass 1 correctly fires TE-09 with weight +5, category tier_eligibility, Standard minimum baseline. EDD elevation confirmed by ES-06. Rule correctly present in rules_fired.",
+            "confidence_basis": "All three TE-09 trigger conditions met: occupation_type='business owner', account_purpose='business', source_of_funds='business'.",
+            "regulatory_citation": "MORB §921(a), §923"
+          },
+          {
+            "check_id": "rule_check_ES-06",
+            "check_type": "rule_firing",
+            "check_description": "ES-06 (high-risk jurisdiction connection — business) — correct fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-06 fires on high_risk_jurisdiction_connection = 'business'. The profile declares a business-dimension jurisdiction connection; the rule's categorical trigger condition is met. Pass 1 correctly fires ES-06 with weight +25, category escalation_triggers, and mandatory EDD tier impact. No numeric threshold in ES-06's trigger; categorical verification is sufficient.",
+            "confidence_basis": "ES-06 trigger: high_risk_jurisdiction_connection = 'business' — condition met without qualification.",
+            "regulatory_citation": "FATF R.10, MORB §921"
+          },
+          {
+            "check_id": "rule_check_ES-08",
+            "check_type": "rule_firing",
+            "check_description": "ES-08 (adverse media — unclear, requires review) — correct fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-08 fires on adverse_media = 'unclear'. Trigger condition met; Pass 1 correctly fires ES-08 with weight +10, category escalation_triggers, Standard minimum floor (subsumed by ES-06's EDD mandate). Pass 1 correctly treats ES-08 as imposing a human review requirement before tier finalization, reflected accurately in hold_reason. Rule correctly present in rules_fired.",
+            "confidence_basis": "ES-08 trigger: adverse_media = 'unclear' — condition met.",
+            "regulatory_citation": "MORB §921"
+          },
+          {
+            "check_id": "rule_check_DC-01",
+            "check_type": "rule_firing",
+            "check_description": "DC-01 (PhilSys / PhilID acceptance) — correct fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-01 fires on identity_document_type = 'PhilSys'. Primary identification is a PhilSys card, acceptable as sole primary identification under RA 11055. Pass 1 correctly fires DC-01 with weight 0, category documentation_process, no secondary verification deficiency. Rule correctly present in rules_fired.",
+            "confidence_basis": "DC-01 trigger: identity_document_type = 'PhilSys' — condition met.",
+            "regulatory_citation": "RA 11055, BSP Circular 1170"
+          },
+          {
+            "check_id": "rule_check_TE-01_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-01 (low-risk profile baseline) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-01 requires expected volume <PHP 50K/mo; profile volume is PHP 750,000/mo. Volume condition not satisfied — TE-01 correctly absent from rules_fired. Additional non-numeric conditions (salaried, single account purpose) are also not met by this business owner profile.",
+            "confidence_basis": "TE-01 volume condition fails: 750,000 is not less than 50,000.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "rule_check_TE-02_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-02 (standard profile baseline) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-02 covers expected volume PHP 50K–500K/mo. Profile volume is PHP 750,000/mo — above the 500K band ceiling. Volume condition not satisfied; TE-02 correctly absent from rules_fired. TE-09 applies as the correct baseline rule for this business owner profile at this volume.",
+            "confidence_basis": "TE-02 volume band: PHP 50K–500K/mo. Profile at PHP 750,000/mo exceeds the upper bound.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "rule_check_TE-03_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-03 (high volume threshold ≥PHP 1M) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03 requires expected monthly volume ≥PHP 1M. Profile volume is PHP 750,000/mo — below the threshold. TE-03 correctly absent from rules_fired.",
+            "confidence_basis": "TE-03 threshold: ≥PHP 1,000,000/mo. Profile at PHP 750,000/mo does not meet threshold.",
+            "regulatory_citation": "BSP Circular 1230 (2026)"
+          },
+          {
+            "check_id": "rule_check_TE-04_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-04 (mass affluent / private banking) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-04 requires customer_type = mass affluent or private banking. Profile declares customer_type = 'individual retail'. Condition not met; TE-04 correctly absent from rules_fired.",
+            "confidence_basis": "TE-04 trigger: customer_type must be 'mass affluent' or 'private banking'. Profile is 'individual retail'.",
+            "regulatory_citation": "MORB §921(a), §923"
+          },
+          {
+            "check_id": "rule_check_TE-05_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-05 (new relationship + high volume) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-05 requires years_with_bank = 'new' AND expected volume ≥PHP 500K/mo. Profile declares years_with_bank = '1-3' — not a new relationship. The non-numeric condition fails independently; TE-05 correctly absent from rules_fired regardless of volume.",
+            "confidence_basis": "TE-05 requires years_with_bank = 'new'. Profile declares '1-3' years — condition not met.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "rule_check_TE-07_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-07 (non-resident foreign individual) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-07 requires residency = non-resident foreign. Profile declares residency_status = 'PH resident'. Condition not met; TE-07 correctly absent from rules_fired.",
+            "confidence_basis": "TE-07 trigger: residency = non-resident foreign. Profile is PH resident.",
+            "regulatory_citation": "MORB §921(a), FATF R.10"
+          },
+          {
+            "check_id": "rule_check_TE-10_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "TE-10 (unclear or unverifiable source of funds) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-10 requires source_of_funds = 'unclear' or cannot be substantiated. Profile declares source_of_funds = 'business' — a stated, verifiable category. Condition not met; TE-10 correctly absent from rules_fired.",
+            "confidence_basis": "TE-10 trigger: source_of_funds = 'unclear'. Profile declares 'business'.",
+            "regulatory_citation": "MORB §921(a), AMLA §9"
+          },
+          {
+            "check_id": "rule_check_ES-01_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-01/02/03 (PEP rules) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "PEP rules ES-01, ES-02, and ES-03 require pep_status = self, immediate family, or close associate respectively. Profile declares pep_status = 'none'. All three PEP rules correctly absent from rules_fired. Senior management approval not required — confirmed by senior_approval_required = false in Pass 1.",
+            "confidence_basis": "PEP trigger conditions require pep_status ≠ none. Profile declares pep_status = 'none'.",
+            "regulatory_citation": "MORB §921, MORB §923, FATF R.12"
+          },
+          {
+            "check_id": "rule_check_ES-04_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-04 (sanctions hit) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-04 requires a confirmed sanctions hit. Profile declares sanctions_screening = 'clean'. Condition not met; ES-04 correctly absent from rules_fired. No Decline recommendation triggered.",
+            "confidence_basis": "ES-04 trigger: sanctions_screening = hit or confirmed match. Profile is 'clean'.",
+            "regulatory_citation": "MORB §921, AMLA §10"
+          },
+          {
+            "check_id": "rule_check_ES-05_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-05 (sanctions pending) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-05 requires sanctions_screening = 'pending'. Profile declares 'clean'. Condition not met; ES-05 correctly absent from rules_fired. No onboarding hold triggered under ES-05 — onboarding_hold = false confirmed correct.",
+            "confidence_basis": "ES-05 trigger: sanctions_screening = 'pending'. Profile is 'clean'.",
+            "regulatory_citation": "MORB §921"
+          },
+          {
+            "check_id": "rule_check_ES-07_not_fired",
+            "check_type": "rule_firing",
+            "check_description": "ES-07 (confirmed adverse media) — correct non-fire",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-07 requires adverse_media = 'confirmed'. Profile declares adverse_media = 'unclear' — not confirmed. ES-07 correctly absent from rules_fired. ES-08 applies for the 'unclear' finding.",
+            "confidence_basis": "ES-07 trigger: adverse_media = 'confirmed'. Profile declares 'unclear'; ES-08 is the applicable rule.",
+            "regulatory_citation": "MORB §921"
+          },
+          {
+            "check_id": "threshold_TE-01_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-01 volume threshold — PHP 750,000/mo vs. <PHP 50,000/mo ceiling",
+            "status": "pass",
+            "severity": null,
+            "profile_value": "PHP 750,000/mo",
+            "rule_threshold": "<PHP 50,000/mo",
+            "comparison_result": "750,000 is not less than 50,000 — TE-01 volume condition not satisfied; correct non-fire confirmed",
+            "evidence_note": "Arithmetic confirms TE-01's volume ceiling is not met. TE-01 correctly absent from rules_fired.",
+            "confidence_basis": "Numeric comparison: 750,000 ≥ 50,000. TE-01 does not fire.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "threshold_TE-02_volume_band",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-02 volume band — PHP 750,000/mo vs. PHP 50K–500K/mo band",
+            "status": "pass",
+            "severity": null,
+            "profile_value": "PHP 750,000/mo",
+            "rule_threshold": "PHP 50,000–500,000/mo",
+            "comparison_result": "750,000 exceeds the 500,000 upper bound of the TE-02 band — TE-02 volume condition not satisfied; correct non-fire confirmed",
+            "evidence_note": "Arithmetic confirms PHP 750,000 falls above TE-02's band ceiling. TE-02 correctly absent from rules_fired.",
+            "confidence_basis": "Numeric comparison: 750,000 > 500,000. TE-02 band not satisfied.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "threshold_TE-03_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-03 volume threshold — PHP 750,000/mo vs. ≥PHP 1,000,000/mo floor",
+            "status": "pass",
+            "severity": null,
+            "profile_value": "PHP 750,000/mo",
+            "rule_threshold": "≥PHP 1,000,000/mo",
+            "comparison_result": "750,000 is less than 1,000,000 — TE-03 volume condition not satisfied; correct non-fire confirmed",
+            "evidence_note": "Arithmetic confirms TE-03's floor is not met. TE-03 correctly absent from rules_fired. PHP 750,000 sits PHP 250,000 below the BSP Circular 1230 EDD threshold.",
+            "confidence_basis": "Numeric comparison: 750,000 < 1,000,000. TE-03 does not fire.",
+            "regulatory_citation": "BSP Circular 1230 (2026)"
+          },
+          {
+            "check_id": "threshold_TE-05_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-05 volume threshold — PHP 750,000/mo vs. ≥PHP 500,000/mo (non-numeric condition also fails)",
+            "status": "pass",
+            "severity": null,
+            "profile_value": "PHP 750,000/mo",
+            "rule_threshold": "≥PHP 500,000/mo",
+            "comparison_result": "750,000 is greater than or equal to 500,000 — TE-05 volume condition is satisfied, but the concurrent non-numeric condition (years_with_bank = 'new') is not met by this profile's 1–3 year relationship; TE-05 correctly does not fire",
+            "evidence_note": "Volume satisfies TE-05's numeric threshold, but TE-05 requires both conditions simultaneously. years_with_bank = '1-3' is not 'new'; the rule correctly does not fire. Pass 1 correctly excludes TE-05.",
+            "confidence_basis": "750,000 ≥ 500,000 (volume satisfied); years_with_bank = '1-3' ≠ 'new' (non-numeric condition not satisfied). Both required; TE-05 does not fire.",
+            "regulatory_citation": "MORB §921(a)"
+          },
+          {
+            "check_id": "score_arithmetic",
+            "check_type": "score_arithmetic",
+            "check_description": "Risk score arithmetic — total and category breakdown reconciliation",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Independent arithmetic: TE-09 (+5, tier_eligibility) + ES-06 (+25, escalation_triggers) + ES-08 (+10, escalation_triggers) + DC-01 (0, documentation_process) + DC-07 (0, documentation_process) = 40 total. Category breakdown: tier_eligibility = 5, escalation_triggers = 35, documentation_process = 0. Pass 1 reports total = 40, tier_eligibility = 5, escalation_triggers = 35, documentation_process = 0. All values reconcile exactly.",
+            "confidence_basis": "Sum of fired rule weights: 5 + 25 + 10 + 0 + 0 = 40. Category attribution verified against ruleset table membership convention.",
+            "regulatory_citation": null
+          },
+          {
+            "check_id": "score_band_mapping",
+            "check_type": "score_band_mapping",
+            "check_description": "Score band mapping — score 40 to 31+ band",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Score of 40 maps to the 31+ band per ruleset decision logic. Pass 1 correctly reports score_band = '31+'. Score-based logic independently supports EDD, corroborating ES-06's hard-rule mandate.",
+            "confidence_basis": "Ruleset band: 31+ → EDD recommended. Score 40 falls in this band.",
+            "regulatory_citation": null
+          },
+          {
+            "check_id": "decision_basis_consistency",
+            "check_type": "decision_basis_consistency",
+            "check_description": "Decision basis consistency — hard_rule with ES-06 as decisive rule",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-06 is a hard-rule EDD trigger; decision_basis = 'hard_rule' is correct. decisive_rule_ids = ['ES-06'] is correct — ES-06 is the sole hard-rule trigger. Score of 40 also supports EDD independently, correctly noted in score_vs_decision_note as corroborative, not decisional. No inconsistency between decision_basis, decisive_rule_ids, recommended_tier, and the fired rule set.",
+            "confidence_basis": "Hard rule ES-06 fires → decision_basis must be 'hard_rule'. No PEP rule fires → senior_approval_required = false is correct.",
+            "regulatory_citation": "MORB §921, FATF R.10"
+          },
+          {
+            "check_id": "onboarding_hold_check",
+            "check_type": "consistency",
+            "check_description": "Onboarding hold status — ES-08 review requirement correctly characterized",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "onboarding_hold = false is correct: ES-05 (sanctions pending) did not fire, so no formal onboarding hold is triggered. ES-08 imposes a tier finalization hold, not an onboarding suspension. Pass 1 correctly distinguishes these — hold_reason accurately states that onboarding may proceed to documentation but tier finalization must await adverse media clearance. The distinction is precise and consistent with the ruleset.",
+            "confidence_basis": "ES-05 not fired; ES-08 fired. ES-08 blocks tier finalization, not onboarding initiation. Pass 1 characterization correct.",
+            "regulatory_citation": "MORB §921"
+          },
+          {
+            "check_id": "pattern_substance",
+            "check_type": "pattern_substance",
+            "check_description": "Compounding pattern substance — three factors, interaction explanation grounded",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "compounding_pattern_present = true with four identified contributing factors: high-risk jurisdiction business connection (high individual severity), adverse media unclear (moderate), PHP 750,000 monthly volume (moderate), and 1–3 year banking relationship (low). Each factor's interaction_note is specific to profile data, not generic. The interaction_explanation correctly identifies the ES-06/ES-08 interaction — that adverse media review scope must be assessed in light of the high-risk jurisdiction connection, not treated in isolation. The volume and relationship-tenure factors correctly inform EDD procedure sequencing without inflating the tier beyond what ES-06 already mandates. Pattern substance is genuine and analytically grounded.",
+            "confidence_basis": "Four factors identified with specific interaction notes grounded in profile data. interaction_explanation names the ES-06/ES-08 interaction explicitly and correctly.",
+            "regulatory_citation": null
+          },
+          {
+            "check_id": "considered_alternatives_check",
+            "check_type": "consistency",
+            "check_description": "Considered alternatives — Standard and SDD rejections defensible",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Standard rejected on two independent grounds: ES-06 hard-rule EDD floor, and score of 40 in the 31+ EDD band. Both grounds are accurate and correctly stated. SDD rejected on three grounds: ES-06, risk score 40 well above 0–10 SDD band, and TE-09 Standard baseline. All rejection grounds are grounded in the ruleset as written. No fabricated alternatives or circular reasoning.",
+            "confidence_basis": "Rejection grounds verified against ruleset: ES-06 mandates EDD; score 40 > 30 EDD threshold; TE-09 Standard minimum; SDD requires score 0–10 with TE-01/06/08 satisfied.",
+            "regulatory_citation": null
+          },
+          {
+            "check_id": "dc07_documentation",
+            "check_type": "dc07_documentation",
+            "check_description": "DC-07 (NPC AI accountability) — dual satisfaction check",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Structured-record satisfaction: DC-07 is present in rules_fired with category = 'documentation_process', weight = 0, and trigger_evidence correctly noting that the recommendation is AI-generated and that NPC Advisory 2024-04 requires documented rationale and human review. Prose-level satisfaction: audit_trail section is substantive — it references the AI generation, the ruleset version (v1, May 2026), the audit pass, the human review requirement (per NPC Advisory 2024-04), and the analyst's retained decision authority (Approve / Escalate / Override). Both halves of DC-07's dual-satisfaction requirement are met.",
+            "confidence_basis": "DC-07 in rules_fired with correct fields (confirmed). audit_trail section substantive with all required elements (confirmed).",
+            "regulatory_citation": "NPC Advisory 2024-04"
+          },
+          {
+            "check_id": "register_examiner_notes",
+            "check_type": "register_compliance",
+            "check_description": "Examiner notes register — institutional register, no AI self-reference or hedging",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "All six examiner notes sections present: decision_summary, profile_analysis, rule_application_and_risk_pattern, considered_alternatives, recommended_edd_procedures, audit_trail. Register is direct and institutional throughout — no hedging language ('I believe,' 'perhaps,' 'it appears'), no AI self-reference ('based on my analysis,' 'I have determined'). Regulatory citations (FATF R.10, MORB §921, AMLA §9, BSP Memorandum M-2026-005) are inline and specific. Prose is committed and precise, consistent with a compliance examiner's finding document.",
+            "confidence_basis": "All required sections present. Register checked for prohibited language patterns. No violations identified.",
+            "regulatory_citation": null
+          },
+          {
+            "check_id": "summary_finding_check",
+            "check_type": "consistency",
+            "check_description": "Summary finding — two sentences, consistent with structured decision, compounding observation included",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "summary_finding is two sentences. Sentence 1 names the decisive rule (ES-06), the tier (EDD), and the ES-08 finalization condition. Sentence 2 names the compounding pattern (high-risk jurisdiction exposure, unresolved adverse media, PHP 750,000 volume, 1–3 year relationship) and correctly states it governs EDD procedure scope rather than the tier itself. Consistent with structured decision fields: recommended_tier = EDD, decision_basis = hard_rule, decisive_rule_ids = [ES-06]. No contradiction with hold_reason or compounding pattern fields.",
+            "confidence_basis": "Two-sentence format satisfied. Decisive rule, tier, hold condition, and compounding pattern all named and consistent with structured decision.",
+            "regulatory_citation": null
+          }
+        ],
+        "violation_summary": {
+          "critical_count": 0,
+          "material_count": 0,
+          "quality_count": 0,
+          "violation_categories": []
+        },
+        "pass_3_targeting": {
+          "regeneration_scope": null,
+          "target_violations": [],
+          "preservation_note": "All fields verified correct. No regeneration required. Full Pass 1 output preserved as-is."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "audit_generated_at": "2026-05-09T00:00:00+08:00",
+          "audited_persona": "Persona C — convergent hybrid",
+          "audit_against_pass_1_id": "persona_c_pass1_2026-05-09",
+          "model": "claude-sonnet-4-6"
+        }
+      }
+    },
+    {
+      "id": "persona_d",
+      "name": "Documentation-Process",
+      "descriptor": "Self-employed investor — documentation compounding (Standard)",
+      "profile": {
+        "customer_reference": "Persona D — cap-reached scenario",
+        "occupation_type": "self-employed",
+        "residency_status": "PH resident",
+        "source_of_funds": "investments",
+        "expected_monthly_volume_php": 280000,
+        "pep_status": "none",
+        "sanctions_screening": "clean",
+        "high_risk_jurisdiction_connection": "none",
+        "customer_type": "individual retail",
+        "account_purpose": "investment",
+        "years_with_bank": "1-3",
+        "identity_document_type": "passport",
+        "adverse_media": "no"
+      },
+      "pass_1": {
+        "decision": {
+          "recommended_tier": "Standard",
+          "decision_basis": "score_based",
+          "decisive_rule_ids": [
+            "TE-02",
+            "DC-05"
+          ],
+          "senior_approval_required": false,
+          "onboarding_hold": false,
+          "hold_reason": null
+        },
+        "risk_score": {
+          "total": 5,
+          "category_breakdown": {
+            "tier_eligibility": 0,
+            "escalation_triggers": 0,
+            "documentation_process": 5
+          },
+          "score_band": "0-10",
+          "score_vs_decision_note": "Score 5 falls within the 0–10 band. SDD would require TE-01, TE-06, or TE-08 to satisfy — none are met by this profile (TE-01 volume threshold fails: PHP 280,000 exceeds the <PHP 50,000/mo ceiling; TE-06 and TE-08 profile conditions not present). SDD is not available. No hard rule fires to mandate EDD. Standard tier is the correct outcome under TE-02 baseline, with DC-05 as the sole score-contributing factor."
+        },
+        "rules_fired": [
+          {
+            "rule_id": "TE-02",
+            "rule_name": "Standard profile baseline",
+            "category": "tier_eligibility",
+            "weight": 0,
+            "trigger_evidence": "Self-employed PH resident; expected monthly volume PHP 280,000 falls within the PHP 50,000–500,000/mo band; source of funds declared as investments (conventional declaration, substantiable); adverse media clean; sanctions clean. All TE-02 conditions satisfied. Threshold arithmetic: PHP 280,000 is greater than PHP 50,000 (lower bound met) and less than PHP 500,000 (upper bound met) — TE-02 volume band satisfied.",
+            "tier_impact": "Standard baseline tier. No hard-rule escalation mandated by this rule alone. Score-based logic governs upward or downward movement from this baseline."
+          },
+          {
+            "rule_id": "DC-02",
+            "rule_name": "Single non-PhilSys ID limitation",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "Identity document presented is passport, which is non-PhilSys. DC-02 trigger condition satisfied: identity document is non-PhilSys. Secondary verification is required — passport cannot serve as sole means of identification under BSP Circular 1170.",
+            "tier_impact": "No independent tier impact. Documentation process requirement: secondary verification required before onboarding can be completed. Does not escalate tier but creates a documentation completeness condition."
+          },
+          {
+            "rule_id": "DC-05",
+            "rule_name": "Source of funds — investment income",
+            "category": "documentation_process",
+            "weight": 5,
+            "trigger_evidence": "Source of funds declared as investments. DC-05 trigger condition satisfied. Investment account documentation must be verified to substantiate declared source of funds. Standard minimum confirmed — DC-05 does not itself mandate EDD but adds weight (+5) and requires documentary verification of the investment account(s) generating the declared income.",
+            "tier_impact": "Standard minimum reinforced. Weight +5 added to risk score. Requires investment account documentation as part of CDD process."
+          },
+          {
+            "rule_id": "DC-07",
+            "rule_name": "NPC AI accountability disclosure",
+            "category": "documentation_process",
+            "weight": 0,
+            "trigger_evidence": "This tier recommendation is AI-generated. DC-07 fires by virtue of AI generation — trigger condition is satisfied on every AI-produced recommendation without exception. The documented-rationale and human-review requirements under NPC Advisory 2024-04 apply.",
+            "tier_impact": "No tier impact. Process rule. Requires: (1) this recommendation to appear in the structured record with full rationale (satisfied by this output); (2) substantive documented rationale in the examiner notes audit_trail section (satisfied below); (3) human compliance analyst to exercise retained final decision authority before onboarding proceeds."
+          }
+        ],
+        "risk_pattern_analysis": {
+          "compounding_pattern_present": true,
+          "pattern_summary": "Self-employed customer with investment-income source of funds, passport-only documentation, and an investment account purpose creates a circular source-of-funds verification challenge where each documentary element depends on the others for corroboration.",
+          "contributing_factors": [
+            {
+              "factor": "Self-employed occupation with investments as declared source of funds",
+              "individual_severity": "low",
+              "interaction_note": "Self-employed status removes employer-payroll corroboration as an independent documentary anchor. The declared source is investments — but without a salary or business revenue trail, the investment portfolio itself is the only income evidence. This creates a single-source dependency that is individually manageable but sets up the compounding problem."
+            },
+            {
+              "factor": "Investment account purpose matching investment-income source of funds",
+              "individual_severity": "low",
+              "interaction_note": "Account purpose is investment, and the declared source of funds is also investments. In isolation this is unremarkable. In combination with self-employed status and investment-only income, the bank is being asked to open an investment account funded by investment proceeds with no external payroll or business-revenue verification available. The circularity — investment income funds an investment account — means that if the declared investment holdings are misrepresented, neither the account purpose nor the source of funds would independently surface the discrepancy."
+            },
+            {
+              "factor": "Passport-only identification without PhilSys anchor",
+              "individual_severity": "low",
+              "interaction_note": "DC-02 requires secondary verification when only a non-PhilSys document is presented. In isolation, passport-only onboarding is a documentation process gap, not a risk signal. Combined with the investment-income circularity and self-employed status — where the identity of the underlying investment accounts and their ownership needs to be verified — the absence of a PhilSys identity anchor removes one layer of verification that would otherwise help anchor the source-of-funds chain to a verified individual. The combination produces a profile where income, account purpose, and identity each carry a mild unresolved documentation dependency."
+            }
+          ],
+          "interaction_explanation": "No individual factor in this profile crosses a hard-rule threshold. Taken together, however, the three factors create a documentation chain where the verification of source of funds depends on investment account documentation that has not yet been produced, the account purpose mirrors the declared source (limiting independent corroboration), and the identity anchor is weaker than PhilSys would provide. The compounding effect is not severity escalation — Standard tier remains correct — but it warrants examiner attention to ensure the CDD documentation package is complete and internally consistent before onboarding proceeds. The risk is not that the customer is high-risk; the risk is that a Standard-tier CDD process executed with normal documentation diligence may still produce an incomplete file if the investment account verification step is not specifically flagged."
+        },
+        "considered_alternatives": [
+          {
+            "alternative_tier": "SDD",
+            "rejection_reason": "SDD requires TE-01, TE-06, or TE-08 to satisfy. Threshold arithmetic for TE-01: expected monthly volume PHP 280,000 vs. TE-01 ceiling of <PHP 50,000/mo — 280,000 is not less than 50,000, condition not satisfied. TE-06 requires OFW residency and remittance account purpose — neither present. TE-08 requires student profile with volume <PHP 30,000/mo — not present. No SDD-qualifying rule fires. SDD is not available regardless of the absence of escalation triggers."
+          },
+          {
+            "alternative_tier": "EDD",
+            "rejection_reason": "No hard rule fires to mandate EDD. TE-03 requires volume ≥ PHP 1M/mo — PHP 280,000 does not satisfy this threshold. TE-10 (unclear or unverifiable source of funds) is not triggered — investments is a conventional, substantiable source of funds, and DC-05 establishes the verification pathway. No PEP status, no sanctions, no high-risk jurisdiction, no adverse media. Score-based logic: total score is 5, which falls in the 0–10 band. Even treating the 0–10 band as scoring toward a borderline, the absence of any SDD-qualifying factor places the decision at Standard, not EDD. EDD would require either a hard-rule mandate (none present) or a score ≥ 31 (score is 5). EDD is not supportable on this profile."
+          }
+        ],
+        "recommended_edd_procedures": [
+          {
+            "procedure_id": 1,
+            "description": "Obtain secondary identification document to satisfy DC-02 requirements. Passport cannot serve as sole means of identification. Acceptable secondary documentation includes government-issued IDs with photograph and signature, SSS/GSIS card, or other BSP-acceptable secondary documents. Secondary ID must be verified against the passport for name, date of birth, and photograph consistency.",
+            "regulatory_basis": "BSP Circular 1170 — DC-02 secondary verification requirement for non-PhilSys primary identification."
+          },
+          {
+            "procedure_id": 2,
+            "description": "Verify investment account documentation to substantiate declared source of funds. Obtain recent account statements (minimum three months) from the investment account(s) generating the declared income. Statements should reflect the customer's name, account number, and transaction history sufficient to establish that the investments are legitimate, active, and consistent with the expected monthly volume of PHP 280,000. Where investment income derives from multiple accounts or instruments, document each.",
+            "regulatory_basis": "MORB §921(a) — source of funds verification requirement; DC-05 — investment income source documentation obligation."
+          },
+          {
+            "procedure_id": 3,
+            "description": "Document the self-employed customer's business or professional activity to corroborate the investment-income source of funds chain. For self-employed customers declaring investment income as the primary source, the absence of employer documentation shifts the corroboration burden to the customer's own records. Obtain the most recent ITR (BIR Form 1701) or audited financial statements where available. The objective is to establish that the customer's declared financial profile — self-employed, investment-income-dependent, expected PHP 280,000 monthly volume — is internally consistent and corroborated by independent documentary evidence.",
+            "regulatory_basis": "MORB §921(a) — CDD requirements including source of funds and source of wealth for applicable customer types; AMLA §9 — record-keeping and due diligence obligations."
+          },
+          {
+            "procedure_id": 4,
+            "description": "Review the account purpose declaration (investment) against the expected monthly volume and the verified investment account documentation to confirm internal consistency. Where the account purpose and source of funds are both investment-related, the CDD file should explicitly document how the bank has satisfied itself that the funds to be deposited or transacted through the account are sourced from legitimate investment proceeds rather than from an undisclosed or unverified source. This review should be documented in the CDD file as a named step, not inferred from the general source-of-funds verification.",
+            "regulatory_basis": "MORB §921(a) — account purpose verification; BSP Circular 1230 (2026) — enhanced transaction monitoring requirements for investment-purpose accounts."
+          }
+        ],
+        "summary_finding": "This customer is recommended for Standard tier under TE-02 (standard profile baseline), with no hard-rule escalation triggers present and a risk score of 5 — below the EDD score threshold and outside the SDD-qualifying bands given that TE-01's volume ceiling is not satisfied. A compounding documentation pattern is noted: self-employed status, investment-income source of funds, and investment account purpose create a circular verification chain that warrants deliberate completion of the DC-02 secondary identification and DC-05 investment account documentation steps before onboarding proceeds.",
+        "examiner_notes_full": {
+          "decision_summary": "This customer is recommended for Standard tier CDD. The recommendation is anchored by TE-02 (standard profile baseline — self-employed PH resident, expected monthly volume PHP 280,000 within the PHP 50K–500K/mo band, conventional source of funds, clean adverse media and sanctions) with no mandatory escalation triggers firing. Risk score is 5, contributed entirely by DC-05 (investment income documentation requirement, +5). The score falls in the 0–10 band; however, SDD is not available because no SDD-qualifying negative-weight rule (TE-01, TE-06, or TE-08) is satisfied — TE-01's volume ceiling of PHP 50,000/mo is exceeded by this profile's PHP 280,000 declared volume. No hard rule mandates EDD. Standard tier is the correct outcome under hybrid-model decision logic. A compounding documentation pattern is flagged — not as a tier-escalation basis, but as a CDD-process quality flag requiring explicit documentation completion before onboarding. Final decision authority rests with the assigned compliance analyst.",
+          "profile_analysis": "The applicant is a self-employed Philippine resident with an investment account purpose and declared source of funds from investments. Expected monthly volume is PHP 280,000, consistent with the Standard-tier profile band. PEP status is none; sanctions screening is clean; adverse media is negative; no high-risk jurisdiction connections are declared. The applicant has been with the bank for one to three years, placing the relationship in the established-but-early category — not new, not long-tenured. Identity documentation is a passport, which triggers DC-02's secondary verification requirement. The profile is facially unremarkable as a Standard-tier customer. The documentary challenge emerges from the combination of three characteristics that are each individually low-risk but structurally interdependent: self-employed occupation with no employer payroll trail, investment income as the sole declared source of funds, and an investment account purpose that mirrors the declared source. This interdependence is the profile's primary examiner-attention point.",
+          "rule_application_and_risk_pattern": "TE-01 was evaluated and rejected. Threshold arithmetic: expected monthly volume PHP 280,000 vs. TE-01 trigger ceiling <PHP 50,000/mo. PHP 280,000 is not less than PHP 50,000 — TE-01's volume condition is not satisfied. TE-01 does not fire. TE-02 fires as the governing baseline rule: self-employed PH resident, volume within the PHP 50K–500K/mo band (280,000 > 50,000; 280,000 < 500,000), conventional source of funds declaration, no adverse flags. TE-02 sets the Standard baseline with zero weight contribution. DC-05 fires on the investments source-of-funds declaration, contributing +5 to the risk score and mandating investment account documentation as part of the CDD file. DC-02 fires on the passport-only identification, mandating secondary verification — no independent weight contribution but a documentation process condition that must be satisfied before onboarding completes.\n\nNo escalation triggers fire. TE-03 was evaluated: PHP 280,000/mo is not ≥ PHP 1,000,000/mo — does not fire. TE-05 was evaluated: years with bank is 1–3 (not 'new') — does not fire. TE-10 was evaluated: declared source of funds is investments, which is a conventional and substantiable source — TE-10's trigger requires unclear or unverifiable source, which is not the finding here. DC-05 establishes the verification pathway for investment income, distinguishing this profile from a TE-10 case. ES-01 through ES-08 were evaluated; none fire on this profile's attributes.\n\nThe compounding pattern identified across TE-02, DC-02, and DC-05 is not a tier-escalation basis — it is a documentation-process quality flag. Self-employed customers declaring investment income as their source of funds, opening investment-purpose accounts, without a PhilSys identity anchor, present a CDD file where three documentary dependencies exist simultaneously: income verification depends on investment account statements (DC-05), identity corroboration depends on secondary documentation (DC-02), and account purpose consistency depends on the same investment account documentation as source of funds. If the investment account documentation step is not explicitly executed and documented, the CDD file will have a circular gap. The risk is not fraud or AML — the individual indicators are all low-severity — but incomplete CDD documentation on a profile where completeness requires deliberate procedural care.",
+          "considered_alternatives": "SDD was considered and rejected. SDD eligibility requires satisfaction of TE-01 (low-risk salaried profile, volume <PHP 50K/mo), TE-06 (OFW with regular remittance pattern), or TE-08 (student account, volume <PHP 30K/mo). None are present: TE-01's volume threshold is not met (PHP 280,000 exceeds the PHP 50,000/mo ceiling); TE-06 requires OFW residency and remittance account purpose, which this profile does not have; TE-08 requires a student profile, which is absent. SDD is not available regardless of the absence of escalation triggers. EDD was considered and rejected. EDD would require either a hard-rule mandate (no hard rule fires on this profile) or a risk score ≥ 31 under score-based logic (total score is 5). The self-employed occupation and investment income source of funds were examined for TE-10 applicability — a finding of unclear or unverifiable source of funds would mandate EDD. However, investments is a conventional, substantiable source of funds with an established verification pathway under DC-05. Declaring investments as a source of funds is not equivalent to an unclear source; it is a documentation-intensive verification step, not an ambiguous one. TE-10 does not fire. Standard tier is the correct and only defensible outcome.",
+          "recommended_edd_procedures": "Four documentation and verification procedures are recommended for this Standard-tier customer. (1) Secondary identification: obtain a secondary government-issued ID to satisfy DC-02's requirement that a non-PhilSys document cannot serve as sole identification. The secondary ID must be verified for name, date of birth, and photograph consistency with the passport under BSP Circular 1170. (2) Investment account documentation: obtain three months of account statements from the investment account(s) declaring the source of funds, sufficient to confirm the customer's name, account ownership, and transaction history consistent with PHP 280,000/mo expected volume, per MORB §921(a) and DC-05. (3) Self-employed income corroboration: obtain BIR Form 1701 (most recent ITR) or audited financial statements to provide an independent corroborating record of the declared investment-income-dependent financial profile, given the absence of employer payroll documentation, per MORB §921(a) and AMLA §9. (4) Account purpose consistency documentation: produce a named, documented review step in the CDD file confirming that the declared investment purpose and investment income source are internally consistent and that the bank has satisfied itself that the expected transactional volume is sourced from legitimate investment proceeds — not inferred from general documentation but explicitly documented as a completed review step, per MORB §921(a) and BSP Circular 1230 (2026).",
+          "audit_trail": "This tier recommendation was produced by an AI compliance reasoning engine (claude-sonnet-4-6) operating as Pass 1 of a three-pass CDD tier decisioning architecture. The recommendation is generated against Ruleset v1 and reflects the hybrid decision model (hard-rule evaluation followed by score-based logic where no hard rule fires). This output has not been reviewed or approved by a human compliance analyst; it is decision support, not a final determination. Under NPC Advisory 2024-04, this AI-generated recommendation must be auditable, explainable, and subject to documented human review before any onboarding decision takes effect. The assigned compliance analyst retains full authority to Approve, Escalate, or Override this recommendation. Pass 2 (independent audit) will evaluate this output against the ruleset for rule-firing correctness, score arithmetic, threshold compliance, pattern substance, and examiner notes quality. If material violations are identified, Pass 3 correction will be triggered. The final decision rests with the compliance analyst after reviewing the full Pass 1–Pass 2–Pass 3 chain and exercising independent judgment. Ruleset version: v1. Model: claude-sonnet-4-6. Generated: 2026-05-09T00:00:00Z."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-09T00:00:00Z",
+          "model": "claude-sonnet-4-6"
+        }
+      },
+      "pass_2": {
+        "overall_status": "PASS",
+        "correction_required": false,
+        "audit_summary": "Pass 1 audited against Ruleset v1 for Persona D (cap-reached scenario: self-employed PH resident, PHP 280,000/mo, investment source of funds, passport-only identification). All rule-firing determinations are correct. Score arithmetic is accurate (total 5, all DC-05 contribution). Decision basis is correctly classified as score_based with Standard tier output. No hard rules fire. SDD correctly rejected on threshold grounds. EDD correctly rejected on absence of hard-rule mandate and score below EDD threshold. Compounding pattern correctly identified with three substantive contributing factors. DC-07 dual-satisfaction requirements met. No violations found.",
+        "independence_attestation": {
+          "independent_assessment_completed": true,
+          "method_note": "Reviewed customer profile and ruleset independently to derive rule-firing assessment before reading Pass 1's output. Performed explicit threshold arithmetic for TE-01 (PHP 280,000 vs. <PHP 50,000 ceiling), TE-02 (PHP 280,000 vs. PHP 50K–500K band), and TE-03 (PHP 280,000 vs. ≥PHP 1M floor). Verified DC-07 dual-satisfaction: structured-record presence in rules_fired and prose-level substantiveness in audit_trail. Derived independent score (5), band (0–10), SDD eligibility (rejected — no TE-01/06/08 qualifier met), and final tier (Standard) before comparing to Pass 1 output."
+        },
+        "checks": [
+          {
+            "check_id": "hard_rule_floor_ES01",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-01 (PEP — self) hard-rule floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares PEP status = none. ES-01 requires PEP status = self. Trigger condition not met. Hard-rule EDD floor and senior management approval requirement do not apply. Pass 1 correctly did not fire ES-01.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, MORB §923, FATF R.12",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_ES02",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-02 (PEP — immediate family) hard-rule floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares PEP status = none. ES-02 requires PEP status = immediate family. Trigger condition not met. Hard-rule EDD floor and senior management approval requirement do not apply. Pass 1 correctly did not fire ES-02.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, MORB §923, FATF R.12",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_ES03",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-03 (PEP — close associate) hard-rule floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares PEP status = none. ES-03 requires PEP status = close associate. Trigger condition not met. Hard-rule EDD floor and senior management approval requirement do not apply. Pass 1 correctly did not fire ES-03.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, MORB §923, FATF R.12",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_ES04",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-04 (sanctions hit) hard-rule decline floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares sanctions screening = clean. ES-04 requires sanctions screening = hit. Trigger condition not met. Decline/freeze/STR floor does not apply. Pass 1 correctly did not fire ES-04.",
+            "confidence_basis": null,
+            "regulatory_citation": "UNSCR via MORB §923, AMLA",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_ES06",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-06 (high-risk jurisdiction) hard-rule floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares high-risk jurisdiction connection = none. ES-06 requires a personal, business, or combined connection to a high-risk jurisdiction. Trigger condition not met. Mandatory EDD floor does not apply. Pass 1 correctly did not fire ES-06.",
+            "confidence_basis": null,
+            "regulatory_citation": "FATF R.10, MORB §921",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_ES07",
+            "check_type": "hard_rule_floor",
+            "check_description": "ES-07 (confirmed adverse media) hard-rule floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Profile declares adverse media = no. ES-07 requires adverse media = yes (confirmed findings). Trigger condition not met. Mandatory EDD floor does not apply. Pass 1 correctly did not fire ES-07.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921, NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_TE03",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-03 (high volume threshold) hard-rule EDD floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Expected monthly volume is PHP 280,000. TE-03 requires ≥ PHP 1,000,000/mo per BSP Circular 1230 (2026). Threshold not met. Mandatory EDD floor does not apply. Pass 1 correctly did not fire TE-03.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "hard_rule_floor_TE10",
+            "check_type": "hard_rule_floor",
+            "check_description": "TE-10 (unclear or unverifiable source of funds) hard-rule EDD floor not triggered",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Source of funds declared as investments — a conventional, substantiable source of funds with an established verification pathway under DC-05. TE-10 requires source of funds to be unclear or unable to be substantiated. That condition is not present. DC-05 fires instead, establishing the verification pathway. Pass 1 correctly did not fire TE-10 and correctly distinguished investments-as-documented-SOF from investments-as-unclear-SOF.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a), AMLA §9",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE01",
+            "check_type": "rule_firing",
+            "check_description": "TE-01 correctly not fired — volume ceiling not satisfied",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-01 requires expected volume <PHP 50,000/mo alongside salaried PH resident, PhilSys/PhilID, and single savings/payroll account purpose. Profile volume is PHP 280,000/mo — exceeds the ceiling. Additionally, profile is self-employed (not salaried) and presents passport (not PhilSys/PhilID). Multiple TE-01 conditions fail. Pass 1 correctly excluded TE-01 and documented the threshold arithmetic explicitly in the considered_alternatives section.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE01_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-01 volume ceiling arithmetic — threshold correctly determines non-firing",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-01's <PHP 50,000/mo volume ceiling is not satisfied. Threshold arithmetic confirms TE-01 correctly excluded from rules_fired. SDD pathway unavailable on volume grounds alone.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 280,000/mo",
+            "rule_threshold": "<PHP 50,000/mo",
+            "comparison_result": "280,000 is not less than 50,000 — TE-01 volume condition not satisfied"
+          },
+          {
+            "check_id": "rule_check_TE02",
+            "check_type": "rule_firing",
+            "check_description": "TE-02 correctly fired as Standard profile baseline",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-02 requires: employed/self-employed PH resident, expected volume PHP 50K–500K/mo, clean adverse media, conventional source of funds. Profile satisfies all conditions: self-employed (self-employed qualifies), PH resident, volume PHP 280,000/mo within band, adverse media = no, source of funds = investments (conventional and substantiable). Pass 1 fired TE-02 correctly with weight 0 and documented trigger evidence with explicit band arithmetic (280,000 > 50,000; 280,000 < 500,000).",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE02_volume_band",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-02 volume band arithmetic — both bounds satisfied",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "PHP 280,000/mo satisfies both the lower bound (>PHP 50,000) and the upper bound (<PHP 500,000) of TE-02's PHP 50K–500K/mo band. TE-02 volume condition correctly confirmed.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": "PHP 280,000/mo",
+            "rule_threshold": "PHP 50,000–500,000/mo (both bounds inclusive)",
+            "comparison_result": "280,000 is greater than 50,000 (lower bound met) and less than 500,000 (upper bound met) — TE-02 volume band satisfied"
+          },
+          {
+            "check_id": "rule_check_TE03_considered",
+            "check_type": "rule_firing",
+            "check_description": "TE-03 correctly not fired — volume below PHP 1M threshold",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03 requires expected monthly volume ≥ PHP 1,000,000/mo. Profile volume is PHP 280,000/mo — below the threshold. Pass 1 correctly excluded TE-03. The considered_alternatives section confirms EDD on TE-03 grounds was evaluated and rejected.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "threshold_TE03_volume",
+            "check_type": "numeric_threshold_verification",
+            "check_description": "TE-03 volume threshold arithmetic — threshold correctly determines non-firing",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-03's ≥PHP 1,000,000/mo threshold is not satisfied. EDD on high-volume grounds is correctly unavailable. Threshold correctly confirms TE-03 non-firing.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1230 (2026)",
+            "profile_value": "PHP 280,000/mo",
+            "rule_threshold": "≥PHP 1,000,000/mo",
+            "comparison_result": "280,000 is less than 1,000,000 — TE-03 volume condition not satisfied"
+          },
+          {
+            "check_id": "rule_check_TE05_considered",
+            "check_type": "rule_firing",
+            "check_description": "TE-05 correctly not fired — relationship not new",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-05 requires years with bank = 'new' AND expected volume ≥ PHP 500,000/mo. Profile years with bank = 1–3 (not 'new') and volume PHP 280,000/mo (below PHP 500,000). Both conditions fail. Pass 1 correctly excluded TE-05.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_TE06_considered",
+            "check_type": "rule_firing",
+            "check_description": "TE-06 correctly not fired — OFW conditions absent",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "TE-06 requires residency = OFW and account purpose = remittance and source of funds = salary. Profile is PH resident (not OFW), account purpose = investment (not remittance), source of funds = investments (not salary). All three conditions fail. Pass 1 correctly excluded TE-06 from both rules_fired and SDD-qualifying rules.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_DC02",
+            "check_type": "rule_firing",
+            "check_description": "DC-02 correctly fired — passport is non-PhilSys identification",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-02 triggers when identity document is non-PhilSys. Profile identity document = passport. Passport is a non-PhilSys document. DC-02 trigger condition met. Pass 1 fired DC-02 correctly with weight 0 and documented that secondary verification is required before onboarding can complete, per BSP Circular 1170.",
+            "confidence_basis": null,
+            "regulatory_citation": "BSP Circular 1170",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_DC05",
+            "check_type": "rule_firing",
+            "check_description": "DC-05 correctly fired — source of funds is investments",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "DC-05 triggers when source of funds = investments. Profile declares source of funds = investments. Trigger condition met. Pass 1 fired DC-05 correctly with weight +5 and documented the investment account documentation requirement. The distinction from TE-10 (unclear source) is correctly drawn — investments is a substantiable source requiring documentary verification, not an ambiguous or unverifiable one.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "rule_check_ES08_considered",
+            "check_type": "rule_firing",
+            "check_description": "ES-08 correctly not fired — adverse media is negative, not unclear",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "ES-08 requires adverse media = unclear. Profile declares adverse media = no (negative). A clean adverse media result does not satisfy the ES-08 trigger. Pass 1 correctly did not fire ES-08.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_arithmetic",
+            "check_type": "score_arithmetic",
+            "check_description": "Risk score total and category breakdown reconcile with rules fired",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Rules fired with non-zero weights: DC-05 (+5). All other fired rules (TE-02, DC-02, DC-07) carry weight 0. Total score = 5. Category breakdown: tier_eligibility = 0 (TE-02 weight 0), escalation_triggers = 0 (no ES rules fire), documentation_process = 5 (DC-05 weight +5, DC-02 weight 0, DC-07 weight 0). Breakdown sum: 0 + 0 + 5 = 5 = total. Arithmetic is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "score_band_mapping",
+            "check_type": "score_band_mapping",
+            "check_description": "Score 5 maps to correct band and tier determination",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Score 5 falls in the 0–10 band. The 0–10 band is SDD eligible only if TE-01, TE-06, or TE-08 also satisfies. None of the three SDD-qualifying rules are met on this profile (TE-01 volume ceiling exceeded; TE-06 OFW conditions absent; TE-08 student profile absent). Score 5 therefore maps to Standard, not SDD. Pass 1's score_vs_decision_note correctly explains this cap-reached logic. Band mapping and tier determination are correct.",
+            "confidence_basis": null,
+            "regulatory_citation": "MORB §921(a)",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "decision_basis_consistency",
+            "check_type": "decision_basis_consistency",
+            "check_description": "Decision basis correctly classified as score_based",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "No hard rule fires on this profile (ES-01 through ES-04, ES-06, ES-07, TE-03, TE-04, TE-05, TE-07, TE-10 all evaluated and rejected). Score-based logic governs. Pass 1 correctly sets decision_basis = score_based. The decisive_rule_ids (TE-02 and DC-05) correctly identify the governing baseline rule and the sole score-contributing rule. Classification is correct.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "pattern_substance",
+            "check_type": "pattern_substance",
+            "check_description": "Compounding pattern analysis substantive and grounded in profile data",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Pass 1 correctly sets compounding_pattern_present = true and identifies three contributing factors: (1) self-employed occupation with investment-income source of funds removing employer-payroll corroboration; (2) investment account purpose mirroring investment-income source, creating circular verification dependency; (3) passport-only identification removing PhilSys identity anchor. Each factor is individually low-severity, tied to actual profile data, and correctly explained in interaction terms — the combination creates a CDD file where source-of-funds verification, account-purpose corroboration, and identity corroboration each carry simultaneous unresolved documentation dependencies. The interaction_explanation correctly frames this as a documentation-process quality flag rather than a tier-escalation basis. Pattern substance meets the standard.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "dc07_documentation",
+            "check_type": "dc07_documentation",
+            "check_description": "DC-07 dual-satisfaction check — structured record and prose-level",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "Structured-record satisfaction: DC-07 appears in rules_fired with category documentation_process, weight 0, and trigger_evidence explicitly stating the recommendation is AI-generated and that NPC Advisory 2024-04 requirements apply. Prose-level satisfaction: audit_trail section in examiner_notes_full is substantive — references the AI generation, the model (claude-sonnet-4-6), the ruleset version (v1), the three-pass architecture, the human review requirement, the analyst's retained final decision authority, and the DC-07 accountability requirement. Both halves of the dual-satisfaction requirement are present. DC-07 check passes.",
+            "confidence_basis": null,
+            "regulatory_citation": "NPC Advisory 2024-04",
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "register_examiner_notes",
+            "check_type": "register_compliance",
+            "check_description": "Examiner notes register and structural completeness",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "All six required examiner notes sections are present: decision_summary, profile_analysis, rule_application_and_risk_pattern, considered_alternatives, recommended_edd_procedures, audit_trail. Register is direct and committed — no AI self-reference, no hedging language (\"I believe,\" \"perhaps,\" \"it seems\" are absent throughout). Prose is specific over generic: rule applications cite rule IDs, threshold arithmetic is spelled out, regulatory citations are inline where applicable. No boilerplate indicators detected. The audit_trail section correctly references the AI generation, model, ruleset version, and human review requirement without framing the output as a final determination.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          },
+          {
+            "check_id": "consistency_summary_vs_structured",
+            "check_type": "consistency",
+            "check_description": "Summary finding consistent with structured decision",
+            "status": "pass",
+            "severity": null,
+            "evidence_note": "summary_finding states Standard tier under TE-02, score 5, no hard-rule escalation, SDD unavailable due to TE-01 volume ceiling exceeded, EDD not supportable. Structured decision states recommended_tier = Standard, decision_basis = score_based, decisive_rule_ids = [TE-02, DC-05], senior_approval_required = false, onboarding_hold = false. The two are fully consistent. The summary_finding's cap-reached framing (SDD ineligible despite low score) matches the score_vs_decision_note in the risk_score section.",
+            "confidence_basis": null,
+            "regulatory_citation": null,
+            "profile_value": null,
+            "rule_threshold": null,
+            "comparison_result": null
+          }
+        ],
+        "violation_summary": {
+          "critical_count": 0,
+          "material_count": 0,
+          "quality_count": 0,
+          "violation_categories": []
+        },
+        "pass_3_targeting": {
+          "target_check_ids": [],
+          "regeneration_scope": "none",
+          "preservation_note": "Pass 1 output is correct in full. No regeneration required. All rule-firing determinations, score arithmetic, decision basis classification, tier determination, compounding pattern analysis, DC-07 dual-satisfaction, examiner notes structure and register, and summary-to-structured consistency are correct. Pass 3 must not modify any element of the Pass 1 output."
+        },
+        "metadata": {
+          "ruleset_version": "v1",
+          "generated_at": "2026-05-09T00:00:00Z",
+          "model": "claude-sonnet-4-6",
+          "audit_against_pass_1_id": "persona-d-cap-reached-pass1-2026-05-09"
+        }
+      }
+    }
+  ]
+}

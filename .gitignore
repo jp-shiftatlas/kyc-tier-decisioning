@@ -1,0 +1,37 @@
+# Node ecosystem
+node_modules/
+.next/
+.vercel/
+dist/
+build/
+out/
+
+# Environment — NEVER commit secrets
+# ANTHROPIC_API_KEY lives in Vercel project env vars only
+# Do not create .env.example with placeholder keys — risk of paste-over
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Visual companion (Superpowers brainstorm transient state)
+.superpowers/
+
+# Package manager cache
+.pnpm-store/
+
+# Compiled prompt caches (build-time injection artifacts)
+.prompts-cache/
+*.compiled.md
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# TypeScript incremental build artifact (Next 16 generates this in working tree)
+*.tsbuildinfo

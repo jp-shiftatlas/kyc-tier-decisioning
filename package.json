@@ -1,0 +1,44 @@
+{
+  "name": "kyc-tier-decisioning",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.0",
+    "@hookform/resolvers": "5.2.x",
+    "@upstash/redis": "^1.38.0",
+    "next": "^16.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.75.0",
+    "zod": "4.0.x"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.0",
+    "@tailwindcss/postcss": "^4.2.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.2.0",
+    "jsdom": "^25.0.0",
+    "postcss": "^8.4.0",
+    "raw-loader": "^4.0.2",
+    "tailwindcss": "^4.2.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
