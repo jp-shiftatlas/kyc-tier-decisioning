@@ -87,6 +87,35 @@ Task 1.3 revealed `examiner_notes_full` in the locked persona JSON is not a stri
 
 ---
 
+---
+
+## Plan-as-written vs runtime reality
+
+### Decision 35 invariants — strip-known-markers-then-check-residual (Batch 2, Task 2.3)
+
+The plan's Task 2.3 recipe for the A→B direction of the bidirectional marker-set invariant used a per-match check: extract every `[…INSERTED HERE…]` regex match from the source, then assert each match is present in `MARKERS`. Two Pass 3 markers are key-value-style (`correction_against_audit_id: [STRING INSERTED HERE]` and `correction_attempt_number: [INTEGER INSERTED HERE]`). The `ORPHAN_PATTERN` regex `\[[^\]]*INSERTED HERE[^\]]*\]` matches the inner bracket `[STRING INSERTED HERE]` independently, while the canonical `MARKERS.correction_audit_id` entry includes the `correction_against_audit_id: ` prefix. The per-match check would either falsely fail on legitimate key-value markers OR have to weaken to a substring check that wouldn't catch a stray bracket disconnected from its prefix.
+
+**Resolution (Task 2.3 implementer):** **strip-known-markers-then-check-residual.** Build a `stripKnownMarkers(source, knownKeys)` helper that removes every MARKERS entry from a copy of the source, then assert `match(ORPHAN_PATTERN)` on the residual returns empty.
+
+```ts
+// Approximate shape:
+const known = PASS3_MARKERS.map((k) => MARKERS[k]);
+let residual = p3;
+for (const k of known) residual = residual.split(k).join('');
+expect(residual.match(ORPHAN_PATTERN) ?? []).toEqual([]);
+```
+
+**Why strictly stronger than the plan recipe:**
+- The full prefixed marker gets stripped as one unit — key-value markers handled correctly.
+- A new marker added to the source (drift) cannot match any known string and remains in the residual → orphan pattern catches it → test fails with a clear diagnostic.
+- Cannot be fooled by partial-substring matches (the per-match check is vulnerable to this when markers share a common bracketed suffix).
+
+**Why preserved:** Decision 35's three-invariant architecture (A: uniqueness, B: non-empty, C: bidirectional) is unchanged. Only the C-A→B implementation is stricter than the plan recipe could have anticipated — the recipe was written before the marker key-value shape was visible. The B→A direction (every MARKERS entry present in source) is also implemented per the plan, unchanged.
+
+**How to apply downstream:** any future task that adds new markers to `MARKERS` and/or new injection sites in `prompts/pass_*.md` must keep both directions of the invariant green. If a new pass file is added, extend the per-pass marker assignments in `lib/prompts/invariants.test.ts` (`PASSN_MARKERS` constants). The coverage check ensures every MARKERS key belongs to at least one per-pass set.
+
+---
+
 ## Categories for future entries
 
 - **Schema vs locked-persona reality** — when persona JSON drives schema changes that the plan's recipe didn't anticipate (this section).
