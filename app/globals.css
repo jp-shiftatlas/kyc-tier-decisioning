@@ -57,11 +57,19 @@
   --color-data-text:           #E8E5DC;
   --color-data-accent:         #8FA8C2;
 
-  /* Type families — visual_system.md §3 */
-  --font-serif:    'Source Serif Pro', 'Charter', 'Georgia', serif;
-  --font-sans:     'Inter', 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
-  --font-mono:     'JetBrains Mono', 'IBM Plex Mono', 'Menlo', monospace;
-  --font-numeric:  'Inter', system-ui, sans-serif;  /* pair with tabular-nums utility */
+  /*
+   * Type families — visual_system.md §3.
+   * Each stack reads next/font's bridge variable (--font-X-loaded) as primary so
+   * the locally-loaded family ships first; the spec's fallback chain trails for the
+   * pre-load FOUT window and the next/font-broken degraded case. The var()-with-
+   * fallback form (--font-X-loaded, 'Spec-Family') preserves the stack's validity
+   * even if next/font's variable is somehow undefined at parse time.
+   * Bridge variables are populated by app/layout.tsx via the next/font/google className.
+   */
+  --font-serif:    var(--font-serif-loaded, 'Source Serif Pro'), 'Charter', 'Georgia', serif;
+  --font-sans:     var(--font-sans-loaded, 'Inter'), 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  --font-mono:     var(--font-mono-loaded, 'JetBrains Mono'), 'IBM Plex Mono', 'Menlo', monospace;
+  --font-numeric:  var(--font-sans-loaded, 'Inter'), system-ui, sans-serif;  /* pair with tabular-nums utility */
 
   /* Type scale — visual_system.md §3 */
   --text-xs:    11px;   /* captions, mode-disclosure labels */
