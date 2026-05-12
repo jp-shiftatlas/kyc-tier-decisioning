@@ -62,7 +62,7 @@ export const profileFormConfig = {
   pep_status: {
     group: 'risk',
     label: 'PEP status',
-    options: ['none', 'domestic PEP', 'foreign PEP', 'family/close associate'] as const,
+    options: ['none', 'domestic PEP', 'foreign PEP', 'family/close associate', 'close associate'] as const,
     citationTooltip: 'Person currently or formerly in a prominent public function, or their family / close associates — FATF R.12, MORB §923.',
   },
   sanctions_screening: {
@@ -73,13 +73,13 @@ export const profileFormConfig = {
   high_risk_jurisdiction_connection: {
     group: 'risk',
     label: 'High-risk jurisdiction connection',
-    options: ['none', 'transit', 'residence', 'business operations'] as const,
+    options: ['none', 'transit', 'residence', 'business operations', 'business'] as const,
     citationTooltip: 'FATF high-risk / monitored jurisdictions — FATF Public Statement, MORB §923.',
   },
   adverse_media: {
     group: 'risk',
     label: 'Adverse media',
-    options: ['no', 'minor flags', 'material concerns'] as const,
+    options: ['no', 'minor flags', 'material concerns', 'unclear'] as const,
   },
   years_with_bank: {
     group: 'relationship',
