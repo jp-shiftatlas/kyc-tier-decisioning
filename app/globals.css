@@ -1,11 +1,103 @@
-:root {
-  --surface-base: #FAF8F4;
-  --text-primary: #1F2933;
+/*
+ * app/globals.css
+ * Tokens per visual_system.md §2 (color) + §3 (type) + Decision 39 (viewport hierarchy).
+ * Tailwind v4 CSS-first config per plan Amendment 9 — no tailwind.config.ts.
+ *
+ * Token-to-utility mapping (Tailwind v4 auto-generated from @theme):
+ *   --color-*    → bg-* / text-* / border-* utilities (e.g., bg-surface-base, text-text-primary)
+ *   --font-*     → font-family utilities (font-serif, font-sans, font-mono, font-numeric)
+ *   --text-*     → font-size utilities (text-xs through text-2xl)
+ *   --leading-*  → line-height utilities (leading-tight / -normal / -loose)
+ *
+ * Decision 39 viewport hierarchy uses Tailwind defaults verbatim:
+ *   md: 768px   — functional floor (single-column reflow, must not break)
+ *   lg: 1024px  — holding target (design holds, audit panel density preserved)
+ *   xl: 1280px  — primary design target (full intended treatment)
+ * No custom breakpoint overrides — Tailwind's defaults match the spec.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  /* Surface */
+  --color-surface-base:        #FAF8F4;  /* off-white, subtle warmth — not pure white */
+  --color-surface-elevated:    #FFFFFF;  /* card / panel surfaces */
+  --color-surface-recessed:    #F1EEE7;  /* secondary panel backgrounds */
+
+  /* Text */
+  --color-text-primary:        #1F2933;  /* charcoal — body text, headings */
+  --color-text-secondary:      #52606D;  /* metadata, captions */
+  --color-text-tertiary:       #7B8794;  /* labels, low-emphasis */
+  --color-text-inverse:        #FAF8F4;  /* on dark surfaces */
+
+  /* Accent — slate-blue (Decision 1). Used sparingly. */
+  --color-accent-primary:      #4A6B8A;
+  --color-accent-secondary:    #5C7A9C;  /* hover / secondary */
+  --color-accent-deep:         #3B5673;  /* active / pressed */
+  --color-accent-subtle-bg:    #E8EDF3;  /* pale slate for badge backgrounds */
+
+  /* Compliance violation — red. ONLY for rule violations (visual_system.md §2). */
+  --color-violation-primary:   #B3261E;  /* deep editorial red */
+  --color-violation-bg:        #FBEAE9;  /* pale red for violation chips */
+  --color-violation-warn:      #C84937;  /* reserved for Pass 3 race banner per Decision 36 */
+
+  /* Neutrals — borders, dividers */
+  --color-border-default:      #D9D2C5;  /* warm grey, harmonizes with off-white */
+  --color-border-strong:       #B8AE9C;  /* emphasis dividers */
+  --color-border-subtle:       #ECE7DC;  /* subtle separation */
+
+  /* Status — non-violation states */
+  --color-status-success:      #2C7A50;  /* deep green — PASS clean only */
+  --color-status-success-bg:   #E5EFE8;
+  --color-status-warning:      #8C6A1F;  /* amber — quality flags only, NOT material */
+  --color-status-warning-bg:   #F5EDD8;
+
+  /* Code / data — for JSON, threshold arithmetic blocks */
+  --color-data-bg:             #2A2F36;
+  --color-data-text:           #E8E5DC;
+  --color-data-accent:         #8FA8C2;
+
+  /* Type families — visual_system.md §3 */
+  --font-serif:    'Source Serif Pro', 'Charter', 'Georgia', serif;
+  --font-sans:     'Inter', 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', 'IBM Plex Mono', 'Menlo', monospace;
+  --font-numeric:  'Inter', system-ui, sans-serif;  /* pair with tabular-nums utility */
+
+  /* Type scale — visual_system.md §3 */
+  --text-xs:    11px;   /* captions, mode-disclosure labels */
+  --text-sm:    13px;   /* metadata, secondary labels */
+  --text-base:  15px;   /* body — UI chrome */
+  --text-md:    17px;   /* serif body for Examiner Notes */
+  --text-lg:    20px;   /* section headings, recommendation tier, pass-naming headlines (Decision 41) */
+  --text-xl:    26px;   /* panel titles */
+  --text-2xl:   34px;   /* page-level title */
+
+  /* Line-heights (unitless — scale with font-size) */
+  --leading-tight:  1.25;
+  --leading-normal: 1.5;
+  --leading-loose:  1.7;  /* serif Examiner Notes paragraphs */
+}
+
+/* Body baseline — institutional register, no decorative effects */
+html,
+body {
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--surface-base);
-  color: var(--text-primary);
   margin: 0;
-  font-family: system-ui, sans-serif;
+}
+
+/*
+ * Modal backdrop — the ONLY semi-transparent overlay allowed (visual_system.md §2).
+ * Used exclusively by the Override modal per PRIMARY_PROMPT.md §6.5.
+ */
+.modal-backdrop {
+  background-color: rgba(31, 41, 51, 0.4);
 }
