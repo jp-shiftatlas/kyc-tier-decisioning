@@ -132,8 +132,6 @@ Example: `formatElapsed` in `lib/ui/format.ts` cross-references `visual_system.m
 
 **Scope:** utility-layer and primitive-layer discipline. Not required at composition-layer components (e.g., `RecommendationCard`, `AuditPanel`) where the spec link is implicit in the component's visual treatment and the layout grid it occupies. The cost of citing every anchor in a composition component would dilute the signal; the cost of failing to cite anchors in a primitive is silent semantic drift one layer down.
 
-**How to apply downstream:** every new file landed in Batches 6–8 (`lib/ui/*.ts`, `components/primitives/*.tsx`) gets a header comment naming the spec rule it serves. When a primitive synthesizes multiple anchors (e.g., a Card cites §2 surface tokens + §4 padding + §5 component constraints), list all of them. When a Decision number applies, prefer the Decision number over the section number — Decisions are versioned in `PRIMARY_PROMPT.md` while sections are stable structural anchors in `visual_system.md`; both are valid, both can co-exist.
-
 ### Upstash wire format
 
 `@upstash/redis` client returns JavaScript `number` type for `incr`, `get`, and `mget` operations on numeric-stored values. Verified empirically via `tests/smoke/upstash-wire-format.smoke.test.ts` against real Upstash database `wired-drake-102218` (Singapore, `ap-southeast-1`).
