@@ -64,13 +64,32 @@ function computeDc07Flags(checks: any[]): { _dc07_structured_record: boolean; _d
   };
 }
 
+// Extract a canonical rule_id (e.g. "DC-07", "TE-02") from a Pass 2 check whose locked persona
+// JSON only carries check_id (e.g. "rule_check_DC-07", "dc07_documentation"). Per the plan's
+// Pass2OutputSchema test contract, normalized checks expose rule_id on rule-firing / DC-07 entries.
+function extractRuleId(check: any): string | undefined {
+  if (typeof check?.rule_id === 'string') return check.rule_id;
+  const id = typeof check?.check_id === 'string' ? check.check_id : '';
+  // Canonical rule code pattern: TE-NN, DC-NN, ES-NN (uppercase, two digits).
+  const m = id.match(/(?:^|[_-])((?:TE|DC|ES)-?\d{2})/i);
+  if (m) return m[1].toUpperCase().replace(/^(TE|DC|ES)(\d{2})$/, '$1-$2');
+  // dc07_documentation / similar lowercase forms — recover by case-folding.
+  const m2 = id.match(/(te|dc|es)0?(\d{1,2})/i);
+  if (m2) return `${m2[1].toUpperCase()}-${m2[2].padStart(2, '0')}`;
+  return undefined;
+}
+
 export function normalizePass2(p2: any): any {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { audited_persona, ...rest } = p2;
-  const checks = p2.checks ?? [];
+  const checks = (p2.checks ?? []).map((c: any) => {
+    const rule_id = extractRuleId(c);
+    return rule_id ? { rule_id, ...c } : c;
+  });
   const dc07 = computeDc07Flags(checks);
   return {
     ...rest,
+    checks,
     generated_at: p2.generated_at ?? p2.audit_generated_at,
     target_check_ids: p2.target_check_ids ?? p2.target_violations ?? [],
     regeneration_scope: p2.regeneration_scope ?? 'none',
