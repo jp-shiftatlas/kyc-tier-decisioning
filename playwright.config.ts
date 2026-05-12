@@ -10,7 +10,8 @@ export default defineConfig({
     viewport: { width: 1280, height: 900 },
   },
   webServer: {
-    command: 'pnpm dev',
+    // corepack-shimmed pnpm — bare `pnpm` is not on PATH in this project's local setup.
+    command: 'corepack pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
