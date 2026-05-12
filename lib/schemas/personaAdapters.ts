@@ -103,6 +103,25 @@ export function normalizePass2(p2: any): any {
   };
 }
 
+// Wire-variant normalization for the customer profile.
+// Persona JSON sometimes carries short-form wire values; the form-config SSOT
+// (Decision 34) and Batch 2's prompt injection assume canonical values.
+// Apply this BEFORE CustomerProfileSchema validation in loadPersona.
+//
+// `adverse_media: "unclear"` is intentionally NOT mapped — it is a real canonical
+// ES-08 ruleset category (ruleset_v1.md L69), not a wire synonym.
+export function normalizeWireVariants(profile: any): any {
+  if (!profile || typeof profile !== 'object') return profile;
+  const out = { ...profile };
+  if (out.pep_status === 'close associate') {
+    out.pep_status = 'family/close associate';
+  }
+  if (out.high_risk_jurisdiction_connection === 'business') {
+    out.high_risk_jurisdiction_connection = 'business operations';
+  }
+  return out;
+}
+
 // ---- Task 1.7 additions (additive per Plan Amendment #1) ----
 // Typed schema-validating loaders. Pure normalizers above remain unchanged.
 
@@ -121,7 +140,7 @@ export function loadPersona(id: PersonaId): LoadedPersona {
   const raw = personasData.personas.find((p: any) => p.id === id);
   if (!raw) throw new Error(`Unknown persona id: ${id}`);
 
-  const profile = CustomerProfileSchema.parse(raw.profile);
+  const profile = CustomerProfileSchema.parse(normalizeWireVariants(raw.profile));
   const pass_1 = Pass1OutputSchema.parse(normalizePass1(raw.pass_1));
   const pass_2 = Pass2OutputSchema.parse(normalizePass2(raw.pass_2));
 

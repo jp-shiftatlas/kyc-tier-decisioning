@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePass1, normalizePass2 } from './personaAdapters';
+import { normalizePass1, normalizePass2, normalizeWireVariants } from './personaAdapters';
 import personasData from '@/data/personas.json';
 
 describe('normalizePass1 (pure)', () => {
@@ -62,5 +62,43 @@ describe('normalizePass2 (pure)', () => {
     const normalized = normalizePass2(maria!.pass_2);
     expect(typeof normalized._dc07_structured_record).toBe('boolean');
     expect(typeof normalized._dc07_prose).toBe('boolean');
+  });
+});
+
+describe('normalizeWireVariants (Batch 1.5 wire-variant mapping)', () => {
+  it('maps pep_status "close associate" → "family/close associate"', () => {
+    const result = normalizeWireVariants({ pep_status: 'close associate' });
+    expect(result.pep_status).toBe('family/close associate');
+  });
+
+  it('maps high_risk_jurisdiction_connection "business" → "business operations"', () => {
+    const result = normalizeWireVariants({ high_risk_jurisdiction_connection: 'business' });
+    expect(result.high_risk_jurisdiction_connection).toBe('business operations');
+  });
+
+  it('preserves adverse_media "unclear" (canonical ES-08 category, not a wire variant)', () => {
+    const result = normalizeWireVariants({ adverse_media: 'unclear' });
+    expect(result.adverse_media).toBe('unclear');
+  });
+
+  it('is a no-op for canonical values', () => {
+    const canonical = {
+      pep_status: 'family/close associate',
+      high_risk_jurisdiction_connection: 'business operations',
+      adverse_media: 'no',
+    };
+    expect(normalizeWireVariants(canonical)).toEqual(canonical);
+  });
+
+  it('is idempotent', () => {
+    const wire = { pep_status: 'close associate', high_risk_jurisdiction_connection: 'business' };
+    const once = normalizeWireVariants(wire);
+    const twice = normalizeWireVariants(once);
+    expect(twice).toEqual(once);
+  });
+
+  it('handles null/undefined profile gracefully', () => {
+    expect(normalizeWireVariants(null)).toBe(null);
+    expect(normalizeWireVariants(undefined)).toBe(undefined);
   });
 });

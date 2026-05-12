@@ -47,6 +47,20 @@ The plan's Task 1.5 recipe modeled `Pass3OutputSchema` as a **flat shape** `{cor
 
 The decision between (a) and (b) depends on whether the model emits the nested envelope reliably under temperature/prompt drift. Option (a) is preferred if reliable.
 
+### CustomerProfile wire-variant normalization (Finding 5 → Path B)
+
+Task 1.2 admitted three values to the form-config enum to make locked personas validate. JP's Path B resolution at Checkpoint 1: revert the additions and normalize wire variants → canonical at load time. Implemented in Batch 1.5 follow-up with this nuance: of the three additions, only two were true wire synonyms.
+
+| Field | Persona value | Canonical | Resolution |
+|---|---|---|---|
+| `pep_status` | `"close associate"` | `"family/close associate"` | Normalize in `normalizeWireVariants` |
+| `high_risk_jurisdiction_connection` | `"business"` | `"business operations"` | Normalize in `normalizeWireVariants` |
+| `adverse_media` | `"unclear"` | `"unclear"` | **Keep in enum** — canonical per ruleset_v1.md ES-08 (`adverse media = unclear` → Standard minimum, human review). The original three-value enum `['no', 'minor flags', 'material concerns']` was incomplete from the start; `"unclear"` is a real ruleset category, not a wire variant. |
+
+**Why preserved with this nuance:** Path B's premise is that form-config-as-SSOT is broken if the dropdown carries synonyms. That holds for the two synonyms. But `"unclear"` carries information the canonical-three-value enum cannot represent — ES-08 fires on it specifically. Reverting it would silently drop the persona's ability to surface adverse-media uncertainty to the model, which would mask a real audit category. The form config now has four `adverse_media` options (one more than the plan recipe started with) and the live custom-input form will accept all four.
+
+**How to apply downstream:** `loadPersona` in `personaAdapters.ts` is the authorized entry point for persona data. It runs `normalizeWireVariants` before `CustomerProfileSchema.parse`. Any future task that wants to consume persona JSON directly (bypassing `loadPersona`) must also call `normalizeWireVariants` first, OR run through `loadPersona` (preferred). Live custom-input traffic does not need normalization — the live form will only emit canonical values because the dropdown is built from `profileFormConfig.<field>.options`.
+
 ### DC-07 heuristic refined past two spec bugs (Finding 6 — note on Amendment 4)
 
 Plan Amendment 4 specified data-driven DC-07 dual-satisfaction flag computation in `normalizePass2`. The recipe contained two latent bugs the Task 1.2.5 implementer caught against real persona JSON content:

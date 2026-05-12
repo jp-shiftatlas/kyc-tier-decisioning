@@ -1,26 +1,27 @@
 import { describe, it, expect } from 'vitest';
 import { CustomerProfileSchema } from './customerProfile';
+import { normalizeWireVariants } from './personaAdapters';
 import personasData from '@/data/personas.json';
 
 describe('CustomerProfileSchema', () => {
   it('validates Maria profile', () => {
     const maria = personasData.personas.find((p: any) => p.id === 'maria');
-    expect(CustomerProfileSchema.safeParse(maria!.profile).success).toBe(true);
+    expect(CustomerProfileSchema.safeParse(normalizeWireVariants(maria!.profile)).success).toBe(true);
   });
 
   it('validates Carlos profile', () => {
     const carlos = personasData.personas.find((p: any) => p.id === 'carlos');
-    expect(CustomerProfileSchema.safeParse(carlos!.profile).success).toBe(true);
+    expect(CustomerProfileSchema.safeParse(normalizeWireVariants(carlos!.profile)).success).toBe(true);
   });
 
   it('validates persona_c profile', () => {
     const c = personasData.personas.find((p: any) => p.id === 'persona_c');
-    expect(CustomerProfileSchema.safeParse(c!.profile).success).toBe(true);
+    expect(CustomerProfileSchema.safeParse(normalizeWireVariants(c!.profile)).success).toBe(true);
   });
 
   it('validates persona_d profile', () => {
     const d = personasData.personas.find((p: any) => p.id === 'persona_d');
-    expect(CustomerProfileSchema.safeParse(d!.profile).success).toBe(true);
+    expect(CustomerProfileSchema.safeParse(normalizeWireVariants(d!.profile)).success).toBe(true);
   });
 
   it('rejects expected_monthly_volume_php = 0', () => {
