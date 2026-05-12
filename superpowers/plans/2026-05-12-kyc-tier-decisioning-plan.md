@@ -135,6 +135,37 @@ Task 0.1.5 confirmed three breaking-change major bumps from the originally pinne
 
     **Task 2.1's commit `3abfdaf` (marker constants) is unaffected** — the marker strings themselves don't change. Only Tasks 2.2 and 2.3 implementation gain the strip step.
 
+15. **Rate-limit library swap — `@upstash/ratelimit` (Batch 3 Constraint 2, JP-approved 2026-05-12).** Tasks 3.3 (L1 per-IP) and 3.4 (L3 global daily kill switch) were planned with hand-rolled fixed-window bucket arithmetic on raw `@upstash/redis` `incr`/`expire` primitives. JP elected Path A: the canonical Vercel-serverless `@upstash/ratelimit` library instead.
+
+    **Apply:**
+    - **package.json:** add `"@upstash/ratelimit": "2.0.x"` to `dependencies` (exact pin per Decision 43 stack-as-installed discipline — same pattern as `zod: "4.0.x"` and `@hookform/resolvers: "5.2.x"`). Installed resolves to 2.0.8 as of 2026-05-12.
+    - **Task 3.3 (`lib/costprotection/rateLimit.ts`):** REPLACE the plan recipe with `Ratelimit.slidingWindow(3, '1 h')` per-IP. **Drop `RATE_LIMIT_DAILY` entirely** — the per-IP daily cap collapses into L3's global cap, removing a redundant middle-layer ceiling. Hourly-only at L1.
+    - **Task 3.4 (`lib/costprotection/killSwitch.ts`):** REPLACE the plan recipe with `Ratelimit.slidingWindow(50, '1 d')` on a single `'global'` identifier. **Sliding, not fixed** — avoids the midnight-UTC boundary-burst failure mode where a fixed window could accept 50 calls at 23:59 UTC and another 50 at 00:01 next day.
+    - **Shared redis singleton:** both L1 and L3 Ratelimit instances consume the same `redis()` from `lib/costprotection/redis.ts`. Two Ratelimit instances total across Batch 3.
+    - **Web-search gate on dispatch:** Task 3.3 included a web-search step to confirm current `@upstash/ratelimit` version + canonical constructor shape (analytics flag and ephemeralCache option have shifted across versions). API confirmed unchanged from 1.x docs at 2.0.8.
+
+    **Net effect:** ~30 lines of bucket math replaced with ~10 lines of library calls. "Portfolio asset uses the standard library" reads better than "hand-rolled bucket arithmetic" for bank compliance officers. Tests adapt to mocking `Ratelimit.limit()` directly instead of raw Redis primitives.
+
+16. **Explicit fail-open contract for cost-protection layer (Batch 3 Constraint 3, JP-approved 2026-05-12).** Plan recipes for Tasks 3.3, 3.4, 3.5 had no try/catch around Upstash calls — fail-CLOSED by omission. A brief Upstash outage during a demo would surface as a broken API route to a bank compliance officer reviewing the asset. JP elected explicit fail-OPEN: visibility-to-JP via telemetry, invisibility-to-visitor.
+
+    **Apply across `rateLimit.ts`, `killSwitch.ts`, `telemetry.ts`:**
+    - **Sentinel type is `null`, not magic `-1`.** Result types are `count: number | null`, `remaining: number | null`, `reset: number | null`. Failure mode encoded in the discriminated union, same discipline as Decision 34's `DecisioningError`.
+    - **Catch-block contract** (all three modules):
+      - (a) `console.error('[<module>] Upstash unreachable, failing open:', err)` — Vercel-log forensics
+      - (b) `recordUpstashFailure()` — bumps the shared module-level counter
+      - (c) Return `{ allowed: true, count: null, ... }` (rate-limit/kill-switch) or `null`/all-null snapshot (telemetry)
+
+    - **Shared failure counter lives in a dedicated module:** `lib/costprotection/upstashFailures.ts` exports `recordUpstashFailure()`, `getUpstashFailureCount()`, `__resetUpstashFailures()`. L1 + L3 + telemetry all write to a single counter, so `/api/admin/stats` (Batch 4) reads one coherent metric. Module-level in-memory — instance-lifetime approximation on Vercel serverless cycling, surfaced as `redis_unreachable_count_24h` on the telemetry snapshot for public API stability.
+
+    - **Regression-guard tests in each module:** every cost-protection module has a `describe('fail-open on Upstash unreachability', ...)` block asserting:
+      - Result shape on thrown `limit()`/`incr()` (allowed: true, count: null)
+      - Shared counter increments on failure
+      - `console.error` was called
+    - A cross-module guard in `killSwitch.test.ts` asserts L1 + L3 failures accumulate into the SAME counter (counter-sharing regression).
+    - Without these tests, the fail-open contract is just a comment vulnerable to silent re-introduction of fail-closed in a future refactor.
+
+    **Cost model:** brief Upstash outage costs a few extra Anthropic API calls. The shared counter surfaces this to JP via admin-stats; the visitor sees a working demo. For a portfolio asset shipping in two weeks, this is the right tradeoff against the alternative ("Redis hiccup → bank compliance officer sees broken site").
+
 ---
 
 **Original amendments — JP strategic review (2026-05-12)**
