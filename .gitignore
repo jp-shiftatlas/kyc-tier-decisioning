@@ -21,6 +21,10 @@ out/
 # Visual companion (Superpowers brainstorm transient state)
 .superpowers/
 
+# Superpowers operational state — track plans/ as durable architectural record; ignore everything else
+superpowers/*
+!superpowers/plans/
+
 # Package manager cache
 .pnpm-store/
 
