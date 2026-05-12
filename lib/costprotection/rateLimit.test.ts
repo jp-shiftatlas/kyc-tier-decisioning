@@ -114,12 +114,17 @@ describe('checkRateLimit (L1 hourly, Path A — @upstash/ratelimit)', () => {
     it('increments upstashFailures counter on each failed call', async () => {
       mockLimit.mockRejectedValue(new Error('Upstash unreachable'));
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const mod = await import('./rateLimit');
-      mod.__resetUpstashFailures();
-      const start = mod.getUpstashFailureCount();
-      await mod.checkRateLimit('1.2.3.4');
-      await mod.checkRateLimit('5.6.7.8');
-      expect(mod.getUpstashFailureCount()).toBe(start + 2);
+      // Counter lives in the shared module (lib/costprotection/upstashFailures.ts)
+      // so L1 + L3 + Batch-4 telemetry aggregate into a single coherent count.
+      const { getUpstashFailureCount, __resetUpstashFailures } = await import(
+        './upstashFailures'
+      );
+      const { checkRateLimit } = await import('./rateLimit');
+      __resetUpstashFailures();
+      const start = getUpstashFailureCount();
+      await checkRateLimit('1.2.3.4');
+      await checkRateLimit('5.6.7.8');
+      expect(getUpstashFailureCount()).toBe(start + 2);
       errorSpy.mockRestore();
     });
 

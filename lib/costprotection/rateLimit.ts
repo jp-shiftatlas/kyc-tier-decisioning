@@ -17,6 +17,7 @@
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { redis } from './redis';
+import { recordUpstashFailure } from './upstashFailures';
 
 export const RATE_LIMIT_HOURLY = 3;
 
@@ -32,19 +33,11 @@ function limiter(): Ratelimit {
 }
 
 // ─── Failure-counter telemetry (JP Constraint 3) ───────────────────────────
-// Exposed for Batch 4's /api/admin/stats so JP gets Vercel-log forensics
-// (console.error) AND in-app visibility (this counter) on Upstash brownouts.
-
-let upstashFailures = 0;
-
-export function getUpstashFailureCount(): number {
-  return upstashFailures;
-}
-
-/** Test-only reset for the failure counter. Not used in production code. */
-export function __resetUpstashFailures(): void {
-  upstashFailures = 0;
-}
+// L1 + L3 brownouts accumulate into the SHARED upstashFailures counter
+// (lib/costprotection/upstashFailures.ts) so Batch 4's /api/admin/stats can
+// surface a single coherent redis_unreachable_count_24h metric. Counter
+// accessors (getUpstashFailureCount / __resetUpstashFailures) are imported
+// directly from './upstashFailures' by callers and tests.
 
 // ─── Public types ──────────────────────────────────────────────────────────
 
@@ -76,8 +69,8 @@ export async function checkRateLimit(ip: string): Promise<RateLimitResult> {
     // Fail-open: visibility-to-JP, invisibility-to-visitor (JP Constraint 3).
     // (a) Vercel-log forensics
     console.error('[rateLimit] Upstash unreachable, failing open:', err);
-    // (b) admin-stats visibility
-    upstashFailures++;
+    // (b) admin-stats visibility — shared counter (L1 + L3 accumulate together)
+    recordUpstashFailure();
     // (c) sentinel-by-type, not magic integer
     return {
       allowed: true,
