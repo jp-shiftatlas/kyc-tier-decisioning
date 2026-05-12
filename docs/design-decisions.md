@@ -143,6 +143,27 @@ Applied at: `package.json` `scripts.test:smoke = "INTEGRATION=real vitest run --
 
 **Re-verify on Vitest upgrade.** If a future Vitest version changes positional-path-vs-exclude precedence (e.g., positional path wins, as a casual reader would expect), the `--dir` workaround becomes unnecessary and the script can revert to `vitest run tests/smoke`. Cheap insurance against silent breakage.
 
+### Font-family verification — name collision between loaded primary and inline fallback (Batch 5, Task 5.3)
+
+When the next/font-loaded family name equals the `@theme` inline `var()` fallback name, first-position parsing of `getComputedStyle(el).fontFamily` cannot distinguish "bridge variable populated → loaded family rendering" from "bridge variable undefined → @theme inline fallback rendering." Both states produce the same first token.
+
+This is the case for Inter (loaded as `Inter`; `@theme` declares `var(--font-sans-loaded, 'Inter')`) and JetBrains Mono (loaded as `JetBrains Mono`; `@theme` declares `var(--font-mono-loaded, 'JetBrains Mono')`). It is NOT the case for Source Serif 4, where the loaded family name (`Source Serif 4`) differs from the `@theme` inline fallback (`'Source Serif Pro'`) — first-position parsing distinguishes the two states.
+
+**Implication:** for verification tests that must fail loudly when the bridge breaks silently, first-position assertion alone is insufficient on Inter and JetBrains Mono. The test would pass under either state because both produce first token `Inter` / `JetBrains Mono` respectively.
+
+**Discriminator:** next/font generates a metric-adjusted fallback family per loaded family — `Inter Fallback`, `Source Serif 4 Fallback`, `JetBrains Mono Fallback`. These names exist ONLY when next/font's CSS Modules class is applied to `<html>`; they are absent from the `@theme` inline fallback chain. Asserting `chain.includes('<Family> Fallback')` is a reliable discriminator regardless of name collision.
+
+**Pattern applied:** `tests/e2e/font-verification.spec.ts` uses a dual assertion on every font test:
+```ts
+const tokens = parseFontFamily(getComputedStyle(el).fontFamily);
+expect(tokens[0]).toBe(targetFamily);                    // first-position primary
+expect(tokens).toContain(`${targetFamily} Fallback`);    // bridge-actually-populated discriminator
+```
+
+**Why both:** the first-position check handles the Source Serif 4 case where the loaded name and inline fallback differ. The `Fallback`-suffix check handles the Inter / JetBrains Mono collision case. Either alone has a hole; together they cover both cases uniformly so the same test shape applies to every family. The cost is one extra `.toContain()` per test — cheap insurance against the silent-fallback-shadowing failure mode.
+
+**When this matters:** any future visual-system change that adds a new font family (or renames a current one) needs the test pattern preserved. If a family is added whose loaded name happens to differ from its inline fallback (like Source Serif 4), the first-position check is sufficient — but apply the dual pattern anyway for uniformity and as a regression guard against future inline-fallback rename drift.
+
 ---
 
 ## Categories for future entries
