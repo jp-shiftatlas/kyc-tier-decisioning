@@ -116,6 +116,35 @@ expect(residual.match(ORPHAN_PATTERN) ?? []).toEqual([]);
 
 ---
 
+---
+
+## Build Findings Log (Batch 4, 2026-05-12)
+
+Empirical resolutions of deferred questions surfaced during earlier batches. Each entry records what was uncertain, what the verification revealed, and what (if any) code remains contingent on the finding.
+
+### Upstash wire format
+
+`@upstash/redis` client returns JavaScript `number` type for `incr`, `get`, and `mget` operations on numeric-stored values. Verified empirically via `tests/smoke/upstash-wire-format.smoke.test.ts` against real Upstash database `wired-drake-102218` (Singapore, `ap-southeast-1`).
+
+The `Number(values[i] ?? 0)` coercion in `lib/costprotection/telemetry.ts` is therefore **belt-and-suspenders, not load-bearing** at current client version (`@upstash/redis@1.38.0`). Coercion retained for two documented reasons:
+
+1. Defense against future `@upstash/redis` major-version deserialization changes that could return strings to match raw Redis wire protocol.
+2. The `?? 0` portion is **independently load-bearing for the mget-missing-key case** — `mget` on a missing key returns `null`; `Number(null)` is `0` but `null` cannot be added arithmetically without the coercion.
+
+**Do not refactor the expression out as dead code.** Re-verify wire format on any `@upstash/redis` major-version upgrade.
+
+### Vitest 4 exclude config overrides positional path arguments
+
+`vitest run <path>` does NOT override the `exclude` array in `vitest.config.ts`. A path argument matching an excluded directory yields `No test files found, exiting with code 1` rather than running the explicitly-pointed tests.
+
+**Workaround:** use `vitest run --dir <path>` instead. The `--dir` flag overrides the exclude.
+
+Applied at: `package.json` `scripts.test:smoke = "INTEGRATION=real vitest run --dir tests/smoke"`. Workaround documented inline in `tests/smoke/README.md`.
+
+**Re-verify on Vitest upgrade.** If a future Vitest version changes positional-path-vs-exclude precedence (e.g., positional path wins, as a casual reader would expect), the `--dir` workaround becomes unnecessary and the script can revert to `vitest run tests/smoke`. Cheap insurance against silent breakage.
+
+---
+
 ## Categories for future entries
 
 - **Schema vs locked-persona reality** — when persona JSON drives schema changes that the plan's recipe didn't anticipate (this section).

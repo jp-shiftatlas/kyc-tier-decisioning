@@ -8,15 +8,25 @@ Each entry: what to do, why, when it was queued.
 
 ## Pre-deploy operational queue
 
-### Verify rotated Upstash credentials are live in Vercel project env vars
+### Provision Vercel project
 
-**Why:** April 2026 Vercel/Upstash incident advisory (per Upstash blog: "Using Upstash on Vercel? Rotate Your Secrets After Vercel's April 2026 Incident") recommends credential rotation for any project using Upstash via Vercel Marketplace integration. JP rotated `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in parallel with Batch 4 work — eliminates the failure mode "rotate at production-deploy moment with no prior test surface."
+**Why:** No Vercel project exists yet — the build is local-only through Batch 10. Batch 11 cuts over to Vercel deployment at `kyc.shiftatlas.tech`.
 
-**When to verify:** Before the first production deploy of Batch 11. Confirm via Vercel dashboard → KYC project → Settings → Environment Variables that the rotated values are present in `Production` (and `Preview` if used for the rehearsal smoke run).
+**When to do:** Early Batch 11, before the first preview deploy.
 
-**How to verify:** A successful run of `pnpm test:smoke` against the rotated credentials in the Vercel preview environment confirms both that rotation took effect and that the wire-format finding from Batch 4 still holds.
+**How to do:** Vercel dashboard → New Project → import the GitHub repo → set framework preset to Next.js 16 → configure custom domain `kyc.shiftatlas.tech` per PRIMARY_PROMPT.md §7.
 
-**Queued:** Batch 3 close-out (response to April 2026 advisory surfaced during Batch 3 Task 3.1 web-search verification).
+**Queued:** Batch 4 close-out (deploy-notes correction round).
+
+### Upstash database — credentials and env-var configuration
+
+**Why:** Upstash database `wired-drake-102218` is provisioned in `ap-southeast-1` (Singapore), free tier. Credentials issued post-April-2026 advisory, so no pre-deploy rotation is needed. The Vercel project (when provisioned per the preceding entry) needs the credentials threaded into its env vars before any deploy can reach the cost-protection layer.
+
+**When to verify:** When the Vercel project is provisioned. Update `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in the Vercel project env vars (Production scope, optionally Preview if used for the rehearsal smoke run).
+
+**How to verify:** A successful run of `pnpm test:smoke` against the configured credentials confirms both that the env vars are wired correctly and that the wire-format finding from Batch 4 (see `docs/design-decisions.md` Build Findings Log) still holds.
+
+**Queued:** Batch 3 close-out, scope corrected at Batch 4 close-out — original entry framed credentials as requiring rotation per April 2026 advisory; correct framing is that the database was provisioned recently with post-advisory credentials, so no rotation is needed.
 
 ---
 
