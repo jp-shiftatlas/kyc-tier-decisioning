@@ -122,6 +122,18 @@ expect(residual.match(ORPHAN_PATTERN) ?? []).toEqual([]);
 
 Empirical resolutions of deferred questions surfaced during earlier batches. Each entry records what was uncertain, what the verification revealed, and what (if any) code remains contingent on the finding.
 
+### Back-references to spec rules in utility docstrings (Batch 6, Task 6.1)
+
+Pure-function utilities in `lib/ui/` — and by generalization, all Batch 6+ utilities and primitives — cite the `visual_system.md` section or numbered Decision they exist to serve in their docstring header.
+
+Example: `formatElapsed` in `lib/ui/format.ts` cross-references `visual_system.md` §3 (tabular-nums pairing) and Decision 41 (audit-panel ticking pace). `formatPhp` cross-references §3 type discipline as the consumer-site pairing. `cx` in `lib/ui/classnames.ts` states the call-site idiom it's built to enable (`cx('base', active && 'is-active')`) so a future reader understands why the falsy-filter shape is load-bearing rather than incidental.
+
+**Why this discipline:** the back-reference trail resists drift during refactor. A future maintainer cannot repurpose `formatElapsed` for a non-ticking context (e.g., a duration label in a static report) without noticing the Decision 41 anchor and either updating the anchor or choosing a different formatter. Without the anchor, the function name alone admits silent re-use that would propagate ticking-pace semantics into contexts where they don't apply.
+
+**Scope:** utility-layer and primitive-layer discipline. Not required at composition-layer components (e.g., `RecommendationCard`, `AuditPanel`) where the spec link is implicit in the component's visual treatment and the layout grid it occupies. The cost of citing every anchor in a composition component would dilute the signal; the cost of failing to cite anchors in a primitive is silent semantic drift one layer down.
+
+**How to apply downstream:** every new file landed in Batches 6–8 (`lib/ui/*.ts`, `components/primitives/*.tsx`) gets a header comment naming the spec rule it serves. When a primitive synthesizes multiple anchors (e.g., a Card cites §2 surface tokens + §4 padding + §5 component constraints), list all of them. When a Decision number applies, prefer the Decision number over the section number — Decisions are versioned in `PRIMARY_PROMPT.md` while sections are stable structural anchors in `visual_system.md`; both are valid, both can co-exist.
+
 ### Upstash wire format
 
 `@upstash/redis` client returns JavaScript `number` type for `incr`, `get`, and `mget` operations on numeric-stored values. Verified empirically via `tests/smoke/upstash-wire-format.smoke.test.ts` against real Upstash database `wired-drake-102218` (Singapore, `ap-southeast-1`).
