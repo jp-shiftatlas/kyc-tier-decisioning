@@ -119,6 +119,22 @@ Task 0.1.5 confirmed three breaking-change major bumps from the originally pinne
 
     **Downstream impact tracked in `docs/design-decisions.md`** (created during this amendment) — it also captures Findings 2, 3, 4, 6 from Checkpoint 1 so the design rationale doesn't live only in commit messages and conversation transcripts.
 
+14. **Strip HTML doc-block comments before marker substitution (Batch 2 finding, Decision 35 mechanism refinement).** Each `prompts/pass_*.md` source file opens with a `<!-- ... -->` HTML comment doc-block describing the injection contract for human readers. The doc-block quotes the marker strings inline (`` `[CUSTOMER PROFILE JSON INSERTED HERE]` ``), so each non-ruleset marker appears TWICE in its source — once in the doc-block, once at the actual injection site. The plan recipe assumed single-occurrence; without this amendment, `replaceOnce` throws and `invariants.test.ts` asserts `occurrences === 1` fails.
+
+    **Resolution (Path A — JP-approved 2026-05-12):**
+    - **Task 2.2 (`lib/prompts/inject.ts`)**: add a private `stripDocComments(text: string): string` helper that runs `text.replace(/<!--[\s\S]*?-->/g, '')`. Invoke it on EACH source prompt and the ruleset BEFORE running marker substitution. The build-time prompt sent to the Anthropic API contains the body only — doc-blocks never reach the model. This serves three properties:
+      - Architectural honesty: doc-block is meta-content about the prompt mechanism, not prompt content. Stripping is the right semantic.
+      - Token discipline: doc-blocks would inflate Decision 30's call envelope unnecessarily.
+      - Register stability: HTML comments embedded in system prompts shift model register unpredictably.
+
+    - **Task 2.3 (`lib/prompts/invariants.test.ts`)**: assert occurrence counts on `stripDocComments(passXPrompt)`, NOT on the raw source. This preserves the single-occurrence invariant as the strongest form of the test (Paths B/C weakened it; Path D would have violated §8.5 byte-frozen discipline).
+
+    - **`stripDocComments` edge cases worth a sanity test:** back-to-back comment blocks (`<!--a--><!--b-->`), comment immediately preceding a marker with no separating whitespace, nested-looking content inside a comment (the regex is non-greedy so this is fine). The TDD test for `inject.ts` should include at least one synthetic fixture that exercises these — if anything weird surfaces, switch to a multiline-anchored variant or strip line-by-line.
+
+    - **Doc-blocks stay in source.** Their job is developer documentation — they help a human reader understand the injection contract by looking at the .md file alone. They are never edited by this build (Locked-artifact discipline per §8.5). Decision 35's byte-frozen-source property is preserved.
+
+    **Task 2.1's commit `3abfdaf` (marker constants) is unaffected** — the marker strings themselves don't change. Only Tasks 2.2 and 2.3 implementation gain the strip step.
+
 ---
 
 **Original amendments — JP strategic review (2026-05-12)**
