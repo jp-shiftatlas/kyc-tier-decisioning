@@ -108,6 +108,17 @@ Task 0.1.5 confirmed three breaking-change major bumps from the originally pinne
 
     **12d — Keep Next 16's tsconfig.json auto-edits:** During Batch 0 boot testing, Next 16 auto-modified `tsconfig.json`: `"jsx": "preserve"` → `"jsx": "react-jsx"`, added `.next/dev/types/**/*.ts` to `include`. Both are mandatory under Next 16. Do NOT revert. The plan's original `jsx: "preserve"` value is obsolete under Next 16.
 
+13. **Task 7.8 ExaminerNotes — render structured six-section `examiner_notes_full` (post-Batch-1 schema reality).** Task 1.3 revealed that `examiner_notes_full` in the locked persona JSON is a structured object, not a string. The new `ExaminerNotesFullSchema` (exported from `lib/schemas/pass1.ts`) has six narrative sub-sections: `decision_summary`, `profile_analysis`, `rule_application_and_risk_pattern`, `considered_alternatives`, `recommended_edd_procedures`, `audit_trail`. `recommended_edd_procedures` is nullable — null for Standard-tier personas (Maria) where EDD operational requirements do not apply.
+
+    **Update Task 7.8's test + impl** (already amended inline in the task body below). Test asserts:
+    - Default state: summary finding visible, no section headers
+    - Expanded state for EDD-tier persona (Carlos): all six section headers render
+    - Expanded state for Standard-tier persona (Maria): five section headers render — "Recommended EDD Procedures" is conditionally omitted when `recommended_edd_procedures === null`
+
+    Implementation maps over a `SECTION_LABELS` array; null/undefined section content skips that section. Section headers use small-caps treatment (xs uppercase tracking-wide text-text-secondary) above each prose paragraph to preserve the compliance-memo register without dropping into a heading hierarchy that conflicts with the page's H1/H2 scale per visual_system.md §3.
+
+    **Downstream impact tracked in `docs/design-decisions.md`** (created during this amendment) — it also captures Findings 2, 3, 4, 6 from Checkpoint 1 so the design rationale doesn't live only in commit messages and conversation transcripts.
+
 ---
 
 **Original amendments — JP strategic review (2026-05-12)**
@@ -4836,6 +4847,8 @@ git commit -m "feat(decisioning): add AuditPanel with revealedCount hook + DC-07
 - Create: `components/decisioning/ExaminerNotes.tsx`
 - Test: `components/decisioning/ExaminerNotes.test.tsx`
 
+> **Per Amendment 13:** `examiner_notes_full` is a structured six-section object (`ExaminerNotesFullSchema` from `lib/schemas/pass1.ts`), not a string. Render each section with a small-caps label above prose. `recommended_edd_procedures` is null for Standard-tier personas (Maria) — conditionally omit that section.
+
 - [ ] **Step 1: Write the test**
 
 ```tsx
@@ -4845,14 +4858,35 @@ import { ExaminerNotes } from './ExaminerNotes';
 import { loadPersona } from '@/lib/schemas/personaAdapters';
 
 describe('ExaminerNotes', () => {
-  it('renders summary finding by default and full notes on expand', () => {
+  it('renders summary finding by default; full memo collapsed', () => {
     const p = loadPersona('maria');
     render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
     expect(screen.getByText(p.pass_1.summary_finding)).toBeInTheDocument();
-    expect(screen.queryByText(p.pass_1.examiner_notes_full)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText(/Read full memo/i));
-    expect(screen.getByText(p.pass_1.examiner_notes_full)).toBeInTheDocument();
+    expect(screen.queryByText(/Decision Summary/i)).not.toBeInTheDocument();
   });
+
+  it('expands to render six structured sections (EDD-tier persona)', () => {
+    const p = loadPersona('carlos'); // EDD tier — recommended_edd_procedures present
+    render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
+    fireEvent.click(screen.getByText(/Read full memo/i));
+    expect(screen.getByText(/Decision Summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/Profile Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Rule Application and Risk Pattern/i)).toBeInTheDocument();
+    expect(screen.getByText(/Considered Alternatives/i)).toBeInTheDocument();
+    expect(screen.getByText(/Recommended EDD Procedures/i)).toBeInTheDocument();
+    expect(screen.getByText(/Audit Trail/i)).toBeInTheDocument();
+  });
+
+  it('omits Recommended EDD Procedures for Standard-tier personas (null in schema)', () => {
+    const p = loadPersona('maria'); // Standard tier — recommended_edd_procedures is null
+    render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
+    fireEvent.click(screen.getByText(/Read full memo/i));
+    expect(screen.queryByText(/Recommended EDD Procedures/i)).not.toBeInTheDocument();
+    // The other five sections still render
+    expect(screen.getByText(/Decision Summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/Audit Trail/i)).toBeInTheDocument();
+  });
+
   it('renders persona name and customer reference', () => {
     const p = loadPersona('maria');
     render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
@@ -4878,8 +4912,20 @@ interface ExaminerNotesProps {
   customerReference: string;
 }
 
+// Six-section structure per ExaminerNotesFullSchema. Order is the compliance-memo register
+// established in prompts/pass_1_system_prompt.md §"Output: Two Layers".
+const SECTION_LABELS = [
+  { key: 'decision_summary', label: 'Decision Summary' },
+  { key: 'profile_analysis', label: 'Profile Analysis' },
+  { key: 'rule_application_and_risk_pattern', label: 'Rule Application and Risk Pattern' },
+  { key: 'considered_alternatives', label: 'Considered Alternatives' },
+  { key: 'recommended_edd_procedures', label: 'Recommended EDD Procedures' },
+  { key: 'audit_trail', label: 'Audit Trail' },
+] as const;
+
 export function ExaminerNotes({ pass1, personaName, customerReference }: ExaminerNotesProps) {
   const [expanded, setExpanded] = useState(false);
+  const notes = pass1.examiner_notes_full;
   return (
     <Card variant="elevated">
       <header className="mb-6">
@@ -4890,8 +4936,18 @@ export function ExaminerNotes({ pass1, personaName, customerReference }: Examine
       <div className="mt-6">
         <ChevronDisclosure label={expanded ? 'Hide full memo' : 'Read full memo'} open={expanded} onToggle={setExpanded} />
         {expanded && (
-          <div className="mt-4 space-y-5 font-serif text-md leading-loose text-text-primary whitespace-pre-line">
-            {pass1.examiner_notes_full}
+          <div className="mt-6 space-y-6">
+            {SECTION_LABELS.map(({ key, label }) => {
+              const content = notes[key as keyof typeof notes];
+              // recommended_edd_procedures is null for Standard-tier personas — omit section
+              if (content === null || content === undefined) return null;
+              return (
+                <section key={key}>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-2">{label}</h3>
+                  <p className="font-serif text-md leading-loose text-text-primary whitespace-pre-line">{content}</p>
+                </section>
+              );
+            })}
           </div>
         )}
       </div>
