@@ -50,4 +50,42 @@ describe('CustomerProfileSchema', () => {
     const maria = personasData.personas.find((p: any) => p.id === 'maria');
     expect(CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: 'xy' }).success).toBe(false);
   });
+
+  // Decision 37b guard 1 — min-3 still applies after case-normalization
+  it('rejects occupation_type free text shorter than 3 chars after case-normalization (Decision 37b guard 1)', () => {
+    const maria = personasData.personas.find((p: any) => p.id === 'maria');
+    // "Xy" → trim → "Xy" → lowercase "xy" → no enum match → free-text branch → min(3) fails
+    expect(CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: 'Xy' }).success).toBe(false);
+  });
+
+  // Decision 37b guard 2 — case-insensitive enum match normalizes to canonical enum casing
+  it('normalizes case-variant enum input to canonical enum value (Decision 37b guard 2)', () => {
+    const maria = personasData.personas.find((p: any) => p.id === 'maria');
+    const result = CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: 'Employed' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.occupation_type).toBe('employed');
+  });
+
+  it('preserves canonical enum casing for uppercase enum values (Decision 37b guard 2)', () => {
+    const maria = personasData.personas.find((p: any) => p.id === 'maria');
+    // profileFormConfig.occupation_type.options includes 'OFW' (uppercase) — input "ofw" must
+    // normalize back to 'OFW' so the enum branch accepts it.
+    const result = CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: 'ofw' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.occupation_type).toBe('OFW');
+  });
+
+  // Decision 37b guard 3 — trim + case-normalize produce identical free-text parsed values
+  it('trim+lowercase produces identical parsed values for spacing/case variants (Decision 37b guard 3)', () => {
+    const maria = personasData.personas.find((p: any) => p.id === 'maria');
+    const padded = CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: '  Software Engineer  ' });
+    const plain = CustomerProfileSchema.safeParse({ ...maria!.profile, occupation_type: 'software engineer' });
+    expect(padded.success).toBe(true);
+    expect(plain.success).toBe(true);
+    if (padded.success && plain.success) {
+      expect(padded.data.occupation_type).toBe('software engineer');
+      expect(plain.data.occupation_type).toBe('software engineer');
+      expect(padded.data.occupation_type).toBe(plain.data.occupation_type);
+    }
+  });
 });

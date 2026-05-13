@@ -8,9 +8,23 @@ const enumOf = <T extends readonly [string, ...string[]]>(opts: T) => z.enum(opt
 const compositeString = z.string().min(1);
 
 // occupation_type — enum or free text with three guards per PRIMARY_PROMPT.md §6.6 (Decision 37b)
+// Guard 1: free-text branch requires ≥3 chars (z.string().min(3) below)
+// Guard 2: case-insensitive enum match — "Employed" / "EMPLOYED" → "employed"; "ofw" → "OFW".
+//          Preserves the enum's canonical casing (e.g. "OFW" stays uppercase).
+// Guard 3: free-text branch is trim+lowercase-normalized so "  Software Engineer  " and
+//          "software engineer" produce identical parsed values.
+// Lives at the schema layer (not the form) so direct POSTs to /api/decisioning validate identically
+// to form submissions — Decision 34 form-config-as-SSOT contract held.
 const occupationEnumValues = profileFormConfig.occupation_type.options as readonly [string, ...string[]];
 const OccupationField = z.preprocess(
-  (val) => (typeof val === 'string' ? val.trim() : val),
+  (val) => {
+    if (typeof val !== 'string') return val;
+    const trimmed = val.trim();
+    const lowered = trimmed.toLowerCase();
+    const enumMatch = occupationEnumValues.find((v) => v.toLowerCase() === lowered);
+    if (enumMatch) return enumMatch;
+    return lowered;
+  },
   z.union([
     enumOf(occupationEnumValues),
     z.string().min(3),
