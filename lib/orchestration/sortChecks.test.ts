@@ -53,4 +53,44 @@ describe('sortChecks', () => {
     expect(sorted[0].check_type).toBe('hard_rule_floor');
     expect(sorted[sorted.length - 1].check_type).toBe('unknown_type');
   });
+
+  // Decision 41e regression guard — stability within (check_type, rule_id) tie
+  // groups. JS Array.prototype.sort is stable (ES2019+); sortChecks relies on
+  // it via `[...checks].sort()`. This test fails loudly if a future refactor
+  // swaps in an unstable sort or a comparator that perturbs equal pairs.
+  it('is stable within (check_type, rule_id) tie groups — equal pairs preserve input order', () => {
+    const checks = [
+      { check_type: 'rule_firing', rule_id: 'TE-02', evidence_note: 'first' },
+      { check_type: 'rule_firing', rule_id: 'TE-02', evidence_note: 'second' },
+      { check_type: 'rule_firing', rule_id: 'TE-02', evidence_note: 'third' },
+    ];
+    const sorted = sortChecks(checks as any);
+    expect(sorted.map((c) => (c as { evidence_note: string }).evidence_note)).toEqual([
+      'first',
+      'second',
+      'third',
+    ]);
+  });
+
+  // Decision 41e + Decisions 28/29 byte-frozen discipline — sortChecks is pure:
+  // deterministic output, a fresh array each call, no input mutation. The
+  // byte-frozen discipline (render-time sort, never source-edit sort) made
+  // into a code-level guard.
+  it('is pure — deterministic output, a new array each call, no input mutation', () => {
+    const checks = [
+      { check_type: 'consistency', rule_id: 'X' },
+      { check_type: 'hard_rule_floor', rule_id: 'A' },
+    ];
+    const snapshot = JSON.stringify(checks);
+    const out1 = sortChecks(checks as any);
+    const out2 = sortChecks(checks as any);
+    // Deterministic: same input → deep-equal output.
+    expect(out1).toEqual(out2);
+    // A new array each call — never the input, never a shared reference.
+    expect(out1).not.toBe(checks);
+    expect(out2).not.toBe(checks);
+    expect(out1).not.toBe(out2);
+    // Input unmutated.
+    expect(JSON.stringify(checks)).toBe(snapshot);
+  });
 });
