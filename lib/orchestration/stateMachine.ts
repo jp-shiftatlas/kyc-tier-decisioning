@@ -438,10 +438,26 @@ export function useDecisioningMachine(triggers: DecisioningTriggers = {}): Decis
   triggersRef.current = triggers;
 
   // Drain pendingTrigger into the injected trigger callbacks.
+  //
+  // CLEAR_TRIGGER is dispatched BEFORE invoking the callback (Finding H fix,
+  // A′). A synchronously-resolving trigger — the persona-playback pattern
+  // (Batch 9.3): onPass1Start immediately calls resolvePass1 — dispatches a
+  // RESOLVE_PASS_N action INSIDE the callback, which sets a NEW pendingTrigger.
+  // If CLEAR_TRIGGER fired AFTER the callback, that same-batch CLEAR would
+  // clobber the freshly-set trigger (React 18+ batches both dispatches) and
+  // the cascade would stall. Clearing first means the batch is
+  // [CLEAR_TRIGGER (old → null), RESOLVE_PASS_N (→ new pendingTrigger)] — the
+  // committed state carries the new trigger and the cascade continues.
+  // Correct for async triggers too (live mode, Batch 9.4): the callback starts
+  // a fetch and returns without dispatching, so the batch is just
+  // [CLEAR_TRIGGER]; the later fetch resolution sets the next trigger fresh.
+  // The 9.1 pure-reducer test suite structurally cannot exercise this — see
+  // the hook-integration cascade test in stateMachine.test.ts.
   useEffect(() => {
     const pending = state.pendingTrigger;
     if (!pending) return;
     const t = triggersRef.current;
+    dispatch({ type: 'CLEAR_TRIGGER' });
     if (pending.kind === 'pass1Start') {
       t.onPass1Start?.();
     } else if (pending.kind === 'pass2Start') {
@@ -449,7 +465,6 @@ export function useDecisioningMachine(triggers: DecisioningTriggers = {}): Decis
     } else if (pending.kind === 'pass3Start') {
       t.onPass3Start?.(pending.input);
     }
-    dispatch({ type: 'CLEAR_TRIGGER' });
   }, [state.pendingTrigger]);
 
   const startPass1 = useCallback(() => dispatch({ type: 'START_PASS_1' }), []);

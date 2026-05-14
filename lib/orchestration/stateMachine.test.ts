@@ -1,10 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
 import {
   decisioningReducer,
   initialState,
+  useDecisioningMachine,
   type DecisioningAction,
+  type DecisioningMachine,
   type DecisioningMachineState,
   type DecisioningState,
+  type DecisioningTriggers,
 } from './stateMachine';
 import { loadPersona } from '@/lib/schemas/personaAdapters';
 import type { Pass1Output } from '@/lib/schemas/pass1';
@@ -543,5 +547,122 @@ describe('decisioningReducer — schema validation at transition entry (Finding 
     ]);
     expect(s.state).toBe('failed');
     expect(s.error?.pass).toBe('re-audit');
+  });
+});
+
+// === useDecisioningMachine — hook-integration drain-effect cascade ===
+//
+// The pure-reducer tests above structurally CANNOT exercise the hook's
+// drain-effect cascade — they drive decisioningReducer(state, action) directly
+// and never go through useReducer + the drain useEffect + React's batching
+// semantics. The drain-effect cascade is where Finding H lived: a latent bug
+// where CLEAR_TRIGGER, dispatched AFTER a synchronously-resolving trigger
+// callback, clobbered the freshly-set pendingTrigger and stalled the cascade.
+// Fixed by A′ (CLEAR_TRIGGER dispatched BEFORE the callback). These tests are
+// the hook-integration test surface — distinct from the pure-reducer surface,
+// catching a distinct bug class (React-batching-dependent cascade behavior).
+describe('useDecisioningMachine — hook-integration drain-effect cascade (Finding H / A′ regression guard)', () => {
+  it('completes the SYNCHRONOUS-trigger cascade idle → pass_1 → pass_2 → passed_first_audit', () => {
+    // Synchronous triggers — the persona-playback (Batch 9.3) resolution
+    // pattern: each trigger immediately resolves with fixture data. Pre-A′,
+    // this cascade stalled at pass_2 (CLEAR_TRIGGER clobbered pass2Start).
+    const machineRef: { current: DecisioningMachine | null } = { current: null };
+    const triggers: DecisioningTriggers = {
+      onPass1Start: () => machineRef.current?.resolvePass1(pass1Fixture),
+      onPass2Start: () => machineRef.current?.resolvePass2(pass2CleanFixture),
+    };
+    const { result } = renderHook(() => {
+      const m = useDecisioningMachine(triggers);
+      machineRef.current = m;
+      return m;
+    });
+
+    act(() => {
+      result.current.startPass1();
+    });
+
+    // The full cascade runs within act()'s recursive effect-flush:
+    // startPass1 → pass_1 → onPass1Start → resolvePass1 → pass_2 →
+    // onPass2Start → resolvePass2 → passed_first_audit.
+    expect(result.current.state.state).toBe('passed_first_audit');
+    expect(result.current.state.pass1Output).not.toBeNull();
+    expect(result.current.state.pass2Output).not.toBeNull();
+  });
+
+  it('completes the SYNCHRONOUS correction cascade through pass_3 → re_audit → corrected_and_verified', () => {
+    // The deeper cascade — pass_3 + re_audit also synchronously resolved.
+    // Confirms A′ holds across every pendingTrigger transition, not just the
+    // pass_1 → pass_2 hop.
+    const machineRef: { current: DecisioningMachine | null } = { current: null };
+    const triggers: DecisioningTriggers = {
+      onPass1Start: () => machineRef.current?.resolvePass1(pass1Fixture),
+      // onPass2Start is reused for original audit AND re-audit. First call
+      // (original audit) resolves with a correction-required Pass 2; the
+      // re-audit call resolves clean. A small call-count switch mimics that.
+      onPass2Start: (() => {
+        let calls = 0;
+        return () => {
+          calls += 1;
+          machineRef.current?.resolvePass2(
+            calls === 1 ? pass2CorrectionFixture : reAuditCleanFixture,
+          );
+        };
+      })(),
+      onPass3Start: () => machineRef.current?.resolvePass3(pass3Fixture),
+    };
+    const { result } = renderHook(() => {
+      const m = useDecisioningMachine(triggers);
+      machineRef.current = m;
+      return m;
+    });
+
+    act(() => {
+      result.current.startPass1();
+    });
+
+    expect(result.current.state.state).toBe('corrected_and_verified');
+    expect(result.current.state.attemptCount).toBe(1);
+    expect(result.current.state.pass3Output).not.toBeNull();
+    expect(result.current.state.reAuditOutput).not.toBeNull();
+  });
+
+  it('ASYNC-trigger path: A′ does not break the live-mode consumer pattern', () => {
+    // Live-mode (Batch 9.4) triggers do NOT synchronously resolve — they start
+    // a fetch and return. The machine waits at the in-flight state until the
+    // consumer resolves. A′ must not break this: with CLEAR_TRIGGER dispatched
+    // before the (non-resolving) callback, the batch is just [CLEAR_TRIGGER]
+    // and the machine sits at pass_1 until resolvePass1 is called.
+    const onPass1Start = vi.fn(); // async trigger — does not resolve synchronously
+    const onPass2Start = vi.fn();
+    const { result } = renderHook(() => useDecisioningMachine({ onPass1Start, onPass2Start }));
+
+    act(() => {
+      result.current.startPass1();
+    });
+    // Trigger fired exactly once; machine waits at pass_1 (no synchronous resolution).
+    expect(onPass1Start).toHaveBeenCalledTimes(1);
+    expect(result.current.state.state).toBe('pass_1');
+
+    // Fetch "resolves" — the consumer calls resolvePass1.
+    act(() => {
+      result.current.resolvePass1(pass1Fixture);
+    });
+    expect(result.current.state.state).toBe('pass_2');
+    expect(onPass2Start).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not double-invoke a trigger when the machine re-renders without a pendingTrigger change', () => {
+    // The drain effect depends on [state.pendingTrigger]. A re-render that does
+    // not change pendingTrigger must not re-fire the trigger — guards against
+    // the async-trigger window (callback fired, awaiting resolution).
+    const onPass1Start = vi.fn();
+    const { result, rerender } = renderHook(() => useDecisioningMachine({ onPass1Start }));
+    act(() => {
+      result.current.startPass1();
+    });
+    expect(onPass1Start).toHaveBeenCalledTimes(1);
+    // Re-render with no state change — pendingTrigger is unchanged.
+    rerender();
+    expect(onPass1Start).toHaveBeenCalledTimes(1);
   });
 });
