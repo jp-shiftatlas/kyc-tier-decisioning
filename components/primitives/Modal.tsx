@@ -18,6 +18,33 @@
 // specifically. If a future Batch 7+ component wants a semi-transparent
 // overlay treatment, that proposal should fail review citing §5.5 line 355.
 //
+// === BANNER SLOT EXTENSION (Task 8.5 / Finding 15 disposition A) ===
+//
+// Added at Task 8.5 as the FIRST primitive-layer modification since Batch 6
+// closed. The extension is the contemplated path from this docstring's
+// original framing: "extend this primitive deliberately or build a sibling
+// primitive. Don't pre-build variant surface for Override-only use."
+// Checkpoint approval was the Task 8.5 dispatch-prep exchange.
+//
+// Motivation: visual_system.md §5.5 line 369 + Decision 36h require
+// Pass3RaceBanner to render INSIDE the Override modal when Pass 3 fires
+// while the modal is open ("modal does not auto-close"). With the original
+// prop surface {open, onClose, onSubmit, title}, this was not implementable.
+//
+// Contract:
+//   - `banner?: React.ReactNode` — optional caller-supplied banner element,
+//     rendered between the title (h2) and the textarea label.
+//   - The slot is auxiliary: Modal's single-purpose Override-Modal contract
+//     (textarea + Cancel + Submit override + APG dialog patterns) stays
+//     unchanged. The banner doesn't alter focus-trap behavior; the textarea
+//     remains the first focusable element on open per WAI-ARIA APG.
+//   - AnalystControlPanel (Task 8.5) is the canonical consumer, injecting
+//     <Pass3RaceBanner pass3={pass3} /> when raceTrigger AND overrideModalOpen.
+//
+// This is a primitive-layer evolution event, not a new spec-silent gap.
+// Documented in the synthesis doc as Modal's prop-surface evolution at
+// Task 8.5.
+//
 // Anchors (per Batch 6+ docstring back-reference discipline):
 //   §5.5 line 355 — "Override modal (the one allowed semi-transparent overlay)"
 //   §5.5 line 356 — Textarea prompt verbatim:
@@ -93,7 +120,7 @@
 //     cue per §5.5 line 355; shadow would be redundant + register-failure)
 //   - no transition / animation on open or close
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button } from './Button';
 
 interface ModalProps {
@@ -101,6 +128,10 @@ interface ModalProps {
   onClose: () => void;
   onSubmit: (basis: string) => void;
   title: string;
+  // Optional banner slot per Decision 36h. Renders between title and textarea
+  // label inside the dialog box. Canonical consumer is AnalystControlPanel
+  // injecting <Pass3RaceBanner /> on a race-during-Override condition.
+  banner?: ReactNode;
 }
 
 const TEXTAREA_PROMPT = 'Document the basis for overriding the AI recommendation.';
@@ -108,7 +139,7 @@ const TEXTAREA_PROMPT = 'Document the basis for overriding the AI recommendation
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ open, onClose, onSubmit, title }: ModalProps) {
+export function Modal({ open, onClose, onSubmit, title, banner }: ModalProps) {
   const [text, setText] = useState('');
   const titleId = useId();
   const textareaId = useId();
@@ -191,6 +222,11 @@ export function Modal({ open, onClose, onSubmit, title }: ModalProps) {
         <h2 id={titleId} className="font-sans text-lg font-semibold text-text-primary">
           {title}
         </h2>
+        {banner && (
+          <div data-testid="modal-banner" className="mt-4">
+            {banner}
+          </div>
+        )}
         <label htmlFor={textareaId} className="mt-4 block text-sm text-text-secondary">
           {TEXTAREA_PROMPT}
         </label>

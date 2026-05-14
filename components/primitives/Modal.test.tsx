@@ -186,3 +186,65 @@ describe('Modal — spec-silence regression guards (Card/Chip/Button/Tooltip pat
     expect(className).not.toMatch(/\btransition(-|\b)/);
   });
 });
+
+// === Banner slot extension (Task 8.5 / Finding 15 disposition A) ===
+//
+// Modal's prop surface evolved at Task 8.5 to accept an optional `banner`
+// ReactNode. Renders between the title (h2) and the textarea label.
+// Decision 36h race-coordination canonical consumer: AnalystControlPanel
+// injects <Pass3RaceBanner /> when raceTrigger AND overrideModalOpen.
+
+describe('Modal — banner slot extension (Decision 36h inside-Modal placement; Task 8.5)', () => {
+  it('renders no banner element when banner prop is omitted (backwards compatibility)', () => {
+    render(<Modal open onClose={noop} onSubmit={noop} title="x" />);
+    expect(screen.queryByTestId('modal-banner')).not.toBeInTheDocument();
+  });
+
+  it('renders the caller-supplied banner inside the dialog when banner prop is provided', () => {
+    render(
+      <Modal
+        open
+        onClose={noop}
+        onSubmit={noop}
+        title="x"
+        banner={<div data-testid="injected-banner">RACE BANNER CONTENT</div>}
+      />,
+    );
+    expect(screen.getByTestId('modal-banner')).toBeInTheDocument();
+    expect(screen.getByTestId('injected-banner')).toBeInTheDocument();
+    expect(screen.getByText('RACE BANNER CONTENT')).toBeInTheDocument();
+  });
+
+  it('renders banner BETWEEN the title (h2) and the textarea-prompt label', () => {
+    render(
+      <Modal
+        open
+        onClose={noop}
+        onSubmit={noop}
+        title="Override recommendation"
+        banner={<div data-testid="injected-banner">banner body</div>}
+      />,
+    );
+    const dialog = screen.getByRole('dialog');
+    const children = Array.from(dialog.children);
+    const titleIdx = children.findIndex((c) => c.tagName === 'H2');
+    const bannerIdx = children.findIndex((c) => c.getAttribute('data-testid') === 'modal-banner');
+    const labelIdx = children.findIndex((c) => c.tagName === 'LABEL');
+    expect(titleIdx).toBeGreaterThanOrEqual(0);
+    expect(bannerIdx).toBeGreaterThan(titleIdx);
+    expect(labelIdx).toBeGreaterThan(bannerIdx);
+  });
+
+  it('banner slot does not alter focus-trap behavior: textarea remains first focusable on open (APG dialog pattern preserved)', () => {
+    render(
+      <Modal
+        open
+        onClose={noop}
+        onSubmit={noop}
+        title="x"
+        banner={<button type="button">banner button</button>}
+      />,
+    );
+    expect(document.activeElement?.tagName).toBe('TEXTAREA');
+  });
+});
