@@ -20,15 +20,13 @@
 //     - line 223: "Why this tier" expandable — ChevronDisclosure primitive
 //       wired per Decision 11 two-layer progressive disclosure pattern
 //       (reused from ExaminerNotes Task 7.4).
-//     - line 224: Suggested EDD requirements — bulleted list. Per Finding 10
-//       corrected disposition, read from canonical persona-JSON top-level
-//       field `recommended_edd_procedures` (NOT the schema's misnamed
-//       `edd_requirements`). Shape is structured: array of
-//       {procedure_id, description, regulatory_basis} per 05_PASS_1_DESIGN.md
-//       §2 canonical JSON contract — NOT array of strings as Pass1OutputSchema
-//       currently declares. Both schema field-name and field-shape drifts
-//       queued in Build Findings Log as Finding 10 (Batch 1 implementation
-//       defect, same class as Finding 9 Hold/Decline).
+//     - line 224: Suggested EDD requirements — structured numbered list. Read
+//       directly off the typed schema field `recommended_edd_procedures`
+//       (Array<EddProcedure> per 05_PASS_1_DESIGN.md §2 canonical contract).
+//       Finding 10 (Batch 1 schema field-name + field-shape drift) is closed:
+//       the pre-Batch-9 schema-alignment commit corrected Pass1OutputSchema
+//       from the misnamed `edd_requirements: z.array(z.string())` to the
+//       canonical `recommended_edd_procedures: z.array(EddProcedureSchema)`.
 //   PRIMARY_PROMPT.md §6.1 line 300 — recommendation card positioning.
 //   Decision 11 — two-layer progressive disclosure pattern reuse from
 //     ExaminerNotes hero section.
@@ -47,27 +45,21 @@
 //     fitness rule: TierBadge is the surface for tier display, NOT Chip
 //     variant="accent". Regression-guarded.
 //
-// === SCHEMA-VS-SPEC DRIFT CASTS (Findings 9 + 10 queued) ===
+// === TIER-UNION NARROWING (intentional, not deferred debt) ===
 //
-// Two cast-at-the-boundary sites resolve schema defects that surfaced during
-// Task 8.2 + Task 8.3 dispatch-prep spec walks. Both are Batch 1
-// implementation defects sitting unnoticed in lib/schemas/pass1.ts:
+// `pass1.decision.recommended_tier` is the canonical 4-value union (SDD /
+// Standard / EDD / Decline). TierBadge's prop union is intentionally narrower
+// at 3 values per Task 8.2 disposition B — 'Decline' (ES-04 sanctions hit)
+// routes to a different demo surface (STR filing branch per
+// 02_RULESET_v1.md:93), not a tier badge. The `as` narrowing at the
+// renderableTier assignment is the compile-time conversation Task 8.2
+// disposition B was designed to force here; it is NOT a deferred-debt cast.
 //
-//   1. recommended_tier admits 'Hold' (schema) but the canonical fourth tier
-//      is 'Decline' (ruleset_v1.md:65 + line 93). TierBadge's 'SDD' |
-//      'Standard' | 'EDD' union (disposition B at Task 8.2) is intentionally
-//      narrower so the schema-vs-spec drift surfaces at this call site. Cast
-//      acknowledges the boundary; locked four personas only emit Standard or
-//      EDD so the cast is empirically safe.
-//   2. Top-level `recommended_edd_procedures` is structured
-//      (Array<{procedure_id, description, regulatory_basis}>); schema
-//      declares `edd_requirements: z.array(z.string()).optional()`. Reading
-//      via looseObject passthrough with an explicit local type — composition
-//      reads the canonical persona-JSON field name + shape, per Finding 10
-//      disposition (A).
-//
-// Both casts will become unnecessary when the schema defects are corrected;
-// removal is queued for the schema-correction follow-up commit.
+// History: before the pre-Batch-9 schema-alignment commit, this site carried
+// TWO casts. The second (a looseObject passthrough for the misnamed
+// `edd_requirements` field) WAS deferred debt and is now removed — Finding 10
+// closed by correcting Pass1OutputSchema. The tier narrowing remains because
+// it was never debt; it was always the disposition-B narrowing mechanism.
 //
 // === RENDER-CONTEXT-AGNOSTIC DISCIPLINE ===
 //
@@ -91,22 +83,12 @@
 //   - Override modal lifecycle (AnalystControlPanel at Task 8.5).
 
 import { useState } from 'react';
-import type { Pass1Output } from '@/lib/schemas/pass1';
+import type { Pass1Output, EddProcedure } from '@/lib/schemas/pass1';
 import { Card } from '@/components/primitives/Card';
 import { TierBadge } from '@/components/primitives/TierBadge';
 import { TabularNumber } from '@/components/primitives/TabularNumber';
 import { Chip } from '@/components/primitives/Chip';
 import { ChevronDisclosure } from '@/components/primitives/ChevronDisclosure';
-
-// Structured EDD procedure shape per 05_PASS_1_DESIGN.md §2 canonical JSON
-// contract. Locked persona JSON carries this shape; Pass1OutputSchema
-// declares a wrong-shape `edd_requirements` field name (Finding 10 schema
-// defect). Read via looseObject passthrough below.
-interface EddProcedure {
-  procedure_id: number;
-  description: string;
-  regulatory_basis: string;
-}
 
 interface RecommendationCardProps {
   pass1: Pass1Output;
@@ -115,17 +97,19 @@ interface RecommendationCardProps {
 export function RecommendationCard({ pass1 }: RecommendationCardProps) {
   const [whyOpen, setWhyOpen] = useState(false);
 
-  // Cast for Finding 9 schema-vs-spec drift (Hold/Decline). TierBadge's union
-  // is intentionally narrower than the schema's by Task 8.2 disposition (B).
+  // Intentional narrowing, NOT a deferred-debt cast. The canonical Pass 1
+  // contract's recommended_tier is a 4-value union (SDD / Standard / EDD /
+  // Decline); TierBadge's prop union is intentionally narrower at 3 values
+  // per Task 8.2 disposition B — 'Decline' (ES-04 sanctions hit) routes to a
+  // different demo surface (STR filing branch per 02_RULESET_v1.md:93), not a
+  // tier badge. This narrowing is the compile-time conversation Task 8.2
+  // disposition B was designed to force at this call site.
   const renderableTier = pass1.decision.recommended_tier as 'SDD' | 'Standard' | 'EDD';
 
-  // Read structured EDD procedures via looseObject passthrough (Finding 10
-  // disposition A). Schema currently declares `edd_requirements: string[]`
-  // (wrong name + wrong shape); the canonical persona-JSON top-level field
-  // is `recommended_edd_procedures: EddProcedure[]`.
-  const eddProcedures =
-    (pass1 as unknown as { recommended_edd_procedures?: EddProcedure[] })
-      .recommended_edd_procedures ?? [];
+  // Structured EDD procedures read directly off the typed schema field
+  // (Finding 10 closed: Pass1OutputSchema now declares
+  // recommended_edd_procedures: EddProcedure[] per the canonical contract).
+  const eddProcedures: EddProcedure[] = pass1.recommended_edd_procedures ?? [];
 
   const breakdown = pass1.risk_score.category_breakdown;
 

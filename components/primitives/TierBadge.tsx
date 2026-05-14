@@ -36,17 +36,16 @@
 // STR filing per ruleset_v1.md line 93, prompts/pass_1_system_prompt.md
 // Decision Logic point 1, 05_PASS_1_DESIGN.md §2 JSON contract).
 //
-// Schema drift note: lib/schemas/pass1.ts:21 currently declares
-// recommended_tier as z.enum(['SDD', 'Standard', 'EDD', 'Hold']) — the
-// fourth value is wrong (should be 'Decline' per the canonical spec corpus).
-// This drift is captured in the Build Findings Log at Batch 8 close as a
-// Batch 1 implementation defect; schema correction is queued. TierBadge's
-// three-value union forces a compile-time conversation at any future call
-// site where a Pass 1 with recommended_tier === 'Decline' (post-schema-fix)
-// or recommended_tier === 'Hold' (current schema bug) tries to compose
-// TierBadge — surfacing the schema-vs-spec drift exactly where it would
-// matter, per Batch 6 TypeScript-union-enforcement-of-spec-named-
-// enumerations methodology.
+// Schema alignment note: lib/schemas/pass1.ts declares recommended_tier as
+// z.enum(['SDD', 'Standard', 'EDD', 'Decline']) — the canonical 4-value
+// contract per the pre-Batch-9 schema-alignment commit (Finding 9 closed; the
+// Batch 1 'Hold' drift was corrected to 'Decline'). TierBadge's three-value
+// union is intentionally narrower than the schema's: it forces a compile-time
+// conversation at any call site where a Pass 1 with recommended_tier ===
+// 'Decline' tries to compose TierBadge — Decline routes to a different demo
+// surface (STR filing branch), not a tier badge. The narrowing surfaces the
+// tier/badge-surface boundary exactly where it would matter, per Batch 6
+// TypeScript-union-enforcement-of-spec-named-enumerations methodology.
 //
 // === TRUST BOUNDARY ===
 // TypeScript enforces the three-value union at compile time at call sites;
