@@ -4,9 +4,10 @@
 // Encapsulates the ACTUAL route contract (verified at the 9.4 dispatch-prep
 // spec walk against app/api/decisioning/route.ts — Finding J). Route-contract
 // knowledge localizes to this one file: when the route contract evolves (e.g.
-// the Finding 20 corrected_pass_1 → corrected_pass_1_output rename, or a
-// future Pass 3 orchestration-envelope change), the update touches this file
-// + its tests, not every fetch call scattered through the orchestration hook.
+// a future Pass 3 orchestration-envelope change, or a Pass-schema field
+// rename like the Finding 20 corrected_pass_1 → corrected_pass_1_output
+// closure), the update touches this file + its tests, not every fetch call
+// scattered through the orchestration hook.
 //
 // === ROUTE CONTRACT (as verified, NOT as the 9.4 directive described it) ===
 //

@@ -8,13 +8,13 @@ afterEach(() => {
 });
 
 // pass3 prop trigger — contents are not read by Pass3RaceBanner (verbatim
-// message is static per §5.5 line 368). corrected_pass_1 cast to satisfy the
+// message is static per §5.5 line 368). corrected_pass_1_output cast to satisfy the
 // type without filling the full Pass 1 envelope (same pattern as the
 // Pass3CorrectionBanner test fixture).
 const mockPass3: Pass3Output = {
   correction_against_audit_id: 'audit-test-20260514120000',
   correction_attempt_number: 1,
-  corrected_pass_1: {} as unknown as Pass3Output['corrected_pass_1'],
+  corrected_pass_1_output: {} as unknown as Pass3Output['corrected_pass_1_output'],
   change_log: [
     { field: 'decision.recommended_tier', before: 'Standard', after: 'EDD', reason: 'race-test' },
   ],

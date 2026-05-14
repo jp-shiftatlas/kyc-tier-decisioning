@@ -6,7 +6,7 @@ describe('Pass3OutputSchema', () => {
     const sample = {
       correction_against_audit_id: 'audit-test-20260512T120000Z',
       correction_attempt_number: 1,
-      corrected_pass_1: {
+      corrected_pass_1_output: {
         decision: {
           recommended_tier: 'EDD',
           decision_basis: 'hard_rule',
@@ -54,7 +54,27 @@ describe('Pass3OutputSchema', () => {
   });
 
   it('rejects missing change_log', () => {
-    const bad = { correction_against_audit_id: 'x', correction_attempt_number: 1, corrected_pass_1: {} };
+    const bad = {
+      correction_against_audit_id: 'x',
+      correction_attempt_number: 1,
+      corrected_pass_1_output: {},
+    };
     expect(Pass3OutputSchema.safeParse(bad).success).toBe(false);
+  });
+});
+
+// Pass3FieldCanon — institutionalizes the canonical Pass 3 field name at the
+// consumption-end test surface (same pattern as Pass1EnumCanon from 2babca2).
+// Finding 20 closure: the corrected-Pass-1 field is `corrected_pass_1_output`
+// per the canonical contract (07_PASS_3_DESIGN.md §3 line 77 / §4 line 280 /
+// §5 line 459 + 03_DESIGN_DECISIONS.md:370,389). The prior `corrected_pass_1`
+// was Batch 1 schema drift — the fourth instance of the Batch-1-schema-drift
+// class, sibling to Findings 9/10/19 (closed at 2babca2). A future schema edit
+// that drifts the field name in EITHER direction fails this guard.
+describe('Pass3FieldCanon — schema field name matches the canonical Pass 3 contract', () => {
+  it('the corrected-Pass-1 field is named corrected_pass_1_output (Finding 20)', () => {
+    const keys = Object.keys(Pass3OutputSchema.shape);
+    expect(keys).toContain('corrected_pass_1_output');
+    expect(keys).not.toContain('corrected_pass_1');
   });
 });

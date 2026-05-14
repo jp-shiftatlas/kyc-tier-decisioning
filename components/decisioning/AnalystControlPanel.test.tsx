@@ -12,7 +12,7 @@ afterEach(() => {
 const mockPass3: Pass3Output = {
   correction_against_audit_id: 'audit-test',
   correction_attempt_number: 1,
-  corrected_pass_1: {} as unknown as Pass3Output['corrected_pass_1'],
+  corrected_pass_1_output: {} as unknown as Pass3Output['corrected_pass_1_output'],
   change_log: [
     { field: 'decision.recommended_tier', before: 'Standard', after: 'EDD', reason: 'test' },
   ],

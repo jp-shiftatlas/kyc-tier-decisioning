@@ -33,7 +33,7 @@ const reAuditStillFlaggedFixture: Pass2Output = { ...carlos.pass_2, correction_r
 const pass3Fixture: Pass3Output = {
   correction_against_audit_id: 'audit-test-20260514120000',
   correction_attempt_number: 1,
-  corrected_pass_1: carlos.pass_1, // a valid Pass1Output as the corrected output
+  corrected_pass_1_output: carlos.pass_1, // a valid Pass1Output as the corrected output
   change_log: [
     {
       field: 'decision.recommended_tier',
@@ -252,14 +252,10 @@ describe('decisioningReducer — Decision 21 cap-at-1 enforcement', () => {
 });
 
 describe('decisioningReducer — anti-pattern guard: re-audit reuses onPass2Start with no signaling (Decision 32)', () => {
-  // Finding 20: the re-audit trigger reads pass3.corrected_pass_1 — the schema
-  // field name AS IT CURRENTLY EXISTS. The canonical-contract name is
-  // corrected_pass_1_output (07_PASS_3_DESIGN.md:77,280,459 +
-  // 03_DESIGN_DECISIONS.md:370,389); pass3.ts:36's corrected_pass_1 is Batch 1
-  // schema drift. When Finding 20's schema-correction commit lands, this test
-  // updates to reference corrected_pass_1_output — that rename is part of
-  // Finding 20's closure scope, not a 9.1 concern.
-  it('RESOLVE_PASS_3 emits a pass2Start pendingTrigger carrying ONLY { pass1: <corrected_pass_1> } — no change_log, no metadata', () => {
+  // The re-audit trigger reads pass3.corrected_pass_1_output — the canonical
+  // Pass 3 contract field name (Finding 20 closed; the prior `corrected_pass_1`
+  // was Batch 1 schema drift, same class as Findings 9/10/19).
+  it('RESOLVE_PASS_3 emits a pass2Start pendingTrigger carrying ONLY { pass1: <corrected_pass_1_output> } — no change_log, no metadata', () => {
     const reAuditEntry = decisioningReducer(
       drive([
         { type: 'START_PASS_1' },
@@ -275,8 +271,8 @@ describe('decisioningReducer — anti-pattern guard: re-audit reuses onPass2Star
     // The trigger input carries ONLY pass1 — the Decision 32 "no signaling"
     // discipline made structural. No change_log, no correction metadata.
     expect(Object.keys(trigger.input)).toEqual(['pass1']);
-    // And it is the corrected Pass 1 (pass3.corrected_pass_1), not the original.
-    expect(trigger.input.pass1).toEqual(pass3Fixture.corrected_pass_1);
+    // And it is the corrected Pass 1 (pass3.corrected_pass_1_output), not the original.
+    expect(trigger.input.pass1).toEqual(pass3Fixture.corrected_pass_1_output);
   });
 
   it('the re-audit trigger reuses the SAME pass2Start kind as the original audit trigger', () => {

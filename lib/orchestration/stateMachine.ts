@@ -55,14 +55,10 @@
 //     consistently per the directive.
 //   lib/schemas/pass1.ts / pass2.ts / pass3.ts — the validated contracts the
 //     machine outputs reference (post-2babca2 corrected pass1.ts shape).
-//     Pass3Output's corrected-Pass-1 field is read as `corrected_pass_1` (the
-//     schema name as it currently exists). Finding 20: the canonical contract
-//     name is `corrected_pass_1_output` (07_PASS_3_DESIGN.md:77,280,459 +
-//     03_DESIGN_DECISIONS.md:370,389); pass3.ts:36's `corrected_pass_1` is
-//     Batch 1 schema drift, same class as Findings 9/10/19. A small mechanical
-//     schema-correction commit closes Finding 20 before Batch 10; this module
-//     and its re-audit anti-pattern test update to `corrected_pass_1_output`
-//     as part of that closure scope, not a 9.1 concern.
+//     Pass3Output's corrected-Pass-1 field is read as `corrected_pass_1_output`
+//     — the canonical Pass 3 contract name (Finding 20 closed; the prior
+//     `corrected_pass_1` was Batch 1 schema drift, same class as Findings
+//     9/10/19).
 //
 // === 'failed' STATE — project-addition beyond the canonical pseudocode ===
 //
@@ -353,12 +349,12 @@ export function decisioningReducer(
         // no reducer path sets it beyond 1.
         attemptCount: 1,
         // Re-audit reuses the SAME onPass2Start trigger (Decision 32 no-
-        // signaling). Input is `{ pass1 }` ONLY — the corrected Pass 1.
-        // Read as `corrected_pass_1` (schema name; Finding 20 tracks the
-        // canonical-contract `corrected_pass_1_output` rename).
+        // signaling). Input is `{ pass1 }` ONLY — the corrected Pass 1,
+        // read from the canonical `corrected_pass_1_output` field (Finding 20
+        // closed).
         pendingTrigger: {
           kind: 'pass2Start',
-          input: { pass1: parsed.data.corrected_pass_1 },
+          input: { pass1: parsed.data.corrected_pass_1_output },
         },
       };
     }

@@ -25,7 +25,7 @@ const reAuditStillFlagged: Pass2Output = { ...carlos.pass_2, correction_required
 const pass3Fixture: Pass3Output = {
   correction_against_audit_id: 'audit-live-test-20260515120000',
   correction_attempt_number: 1,
-  corrected_pass_1: carlos.pass_1,
+  corrected_pass_1_output: carlos.pass_1,
   change_log: [
     {
       field: 'decision.recommended_tier',
@@ -147,7 +147,7 @@ describe('useLiveDecisioning — Decision 32 no-signaling (structural)', () => {
 });
 
 describe('useLiveDecisioning — re-audit onPass2Start symmetry (Decision 32)', () => {
-  it('the re-audit POST carries pass1 === pass3.corrected_pass_1', async () => {
+  it('the re-audit POST carries pass1 === pass3.corrected_pass_1_output', async () => {
     const spy = stubFetchSequence(
       ok(pass1),
       ok(pass2Correction),
@@ -160,12 +160,11 @@ describe('useLiveDecisioning — re-audit onPass2Start symmetry (Decision 32)', 
     });
     await waitFor(() => expect(result.current.state.state).toBe('corrected_and_verified'));
 
-    // The 4th fetch call (re-audit) carries the CORRECTED Pass 1 from Pass 3.
-    // (Finding 20: pass3.corrected_pass_1 is the schema's current field name;
-    // the corrected_pass_1_output rename, when it lands, updates this
-    // assertion as part of Finding 20's closure scope.)
+    // The 4th fetch call (re-audit) carries the CORRECTED Pass 1 from Pass 3 —
+    // read from the canonical `corrected_pass_1_output` field (Finding 20
+    // closed; the prior `corrected_pass_1` was Batch 1 schema drift).
     const reAudit = fetchCall(spy, 3);
-    expect(reAudit.body.pass1).toEqual(pass3Fixture.corrected_pass_1);
+    expect(reAudit.body.pass1).toEqual(pass3Fixture.corrected_pass_1_output);
   });
 });
 

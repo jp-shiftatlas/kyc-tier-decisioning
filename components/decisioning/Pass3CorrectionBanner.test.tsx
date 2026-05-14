@@ -11,8 +11,8 @@ afterEach(() => {
 const mockPass3: Pass3Output = {
   correction_against_audit_id: 'audit-test-20260513120000',
   correction_attempt_number: 1,
-  // corrected_pass_1 cast as unknown — banner doesn't render Pass 1 fields
-  corrected_pass_1: {} as unknown as Pass3Output['corrected_pass_1'],
+  // corrected_pass_1_output cast as unknown — banner doesn't render Pass 1 fields
+  corrected_pass_1_output: {} as unknown as Pass3Output['corrected_pass_1_output'],
   change_log: [
     {
       field: 'decision.recommended_tier',
