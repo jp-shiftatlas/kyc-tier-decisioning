@@ -29,7 +29,7 @@ function parseFontFamily(computed: string): string[] {
 
 test.describe('Task 5.3 — font-family resolution (next/font bridge → @theme stack → element)', () => {
   test('font-serif on prose: Source Serif 4 is first; Source Serif 4 Fallback present', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const fontFamily = await page
       .locator('[data-testid="serif-prose"]')
       .evaluate((el) => getComputedStyle(el).fontFamily);
@@ -39,7 +39,7 @@ test.describe('Task 5.3 — font-family resolution (next/font bridge → @theme 
   });
 
   test('font-mono on rule-ID: JetBrains Mono is first; JetBrains Mono Fallback present', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const fontFamily = await page
       .locator('[data-testid="mono-ruleid"]')
       .evaluate((el) => getComputedStyle(el).fontFamily);
@@ -49,7 +49,7 @@ test.describe('Task 5.3 — font-family resolution (next/font bridge → @theme 
   });
 
   test('font-sans on heading: Inter is first; Inter Fallback present', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const fontFamily = await page
       .locator('[data-testid="sans-heading"]')
       .evaluate((el) => getComputedStyle(el).fontFamily);
@@ -59,7 +59,7 @@ test.describe('Task 5.3 — font-family resolution (next/font bridge → @theme 
   });
 
   test('body inherits Inter as first sans family via globals.css var(--font-sans)', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const fontFamily = await page
       .locator('body')
       .evaluate((el) => getComputedStyle(el).fontFamily);
@@ -71,7 +71,7 @@ test.describe('Task 5.3 — font-family resolution (next/font bridge → @theme 
 
 test.describe('Task 5.3 — token color resolution (Tailwind v4 @theme → utility classes)', () => {
   test('bg-surface-base resolves to visual_system.md §2 off-white #FAF8F4', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const bg = await page
       .locator('[data-testid="root-main"]')
       .evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -80,7 +80,7 @@ test.describe('Task 5.3 — token color resolution (Tailwind v4 @theme → utili
   });
 
   test('text-text-primary resolves to visual_system.md §2 charcoal #1F2933', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const color = await page
       .locator('[data-testid="root-main"]')
       .evaluate((el) => getComputedStyle(el).color);
@@ -89,7 +89,7 @@ test.describe('Task 5.3 — token color resolution (Tailwind v4 @theme → utili
   });
 
   test('text-accent-primary resolves to visual_system.md §2 slate-blue #4A6B8A', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const color = await page
       .locator('[data-testid="accent-label"]')
       .evaluate((el) => getComputedStyle(el).color);
@@ -98,7 +98,7 @@ test.describe('Task 5.3 — token color resolution (Tailwind v4 @theme → utili
   });
 
   test('border-border-default resolves to visual_system.md §2 warm-grey #D9D2C5', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/font-verification');
     const borderColor = await page
       .locator('[data-testid="bordered-region"]')
       .evaluate((el) => getComputedStyle(el).borderTopColor);

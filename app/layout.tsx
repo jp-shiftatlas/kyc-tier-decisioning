@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Source_Serif_4, JetBrains_Mono } from 'next/font/google';
+import { PageHeader } from '@/components/chrome/PageHeader';
+import { PageFooter } from '@/components/chrome/PageFooter';
 
 /*
  * Font loading per visual_system.md §3 type families (Path A — spec wins).
@@ -57,13 +59,22 @@ export const metadata: Metadata = {
   description: 'Three-pass reasoning pipeline demo for Philippine bank compliance.',
 };
 
+// At Batch 10.2: chrome (PageHeader + PageFooter) wraps {children} per the
+// idiomatic Next.js App Router pattern. The /font-verification route inherits
+// the chrome too — acceptable since the Playwright e2e tests font-family
+// resolution by computed style on specific data-testid elements, not by
+// document-wide DOM shape.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${inter.variable} ${sourceSerif.variable} ${jetBrainsMono.variable}`}
     >
-      <body>{children}</body>
+      <body className="flex min-h-screen flex-col">
+        <PageHeader />
+        <div className="flex-1">{children}</div>
+        <PageFooter />
+      </body>
     </html>
   );
 }
