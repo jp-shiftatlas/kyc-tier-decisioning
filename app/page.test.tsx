@@ -7,7 +7,7 @@ afterEach(() => {
   cleanup();
 });
 
-describe('app/page.tsx — assembled-page layout sequence (Batch 10.2)', () => {
+describe('app/page.tsx — assembled-page layout sequence (Batch 10.2 layout + 10.3 wiring)', () => {
   it('renders the four major section landmarks in canonical order', () => {
     render(<HomePage />);
     const main = screen.getByTestId('home-main');
@@ -16,7 +16,7 @@ describe('app/page.tsx — assembled-page layout sequence (Batch 10.2)', () => {
     );
     expect(sections).toEqual([
       'persona-section',
-      'decisioning-surface-placeholder',
+      'decisioning-surface',
       'custom-input-section',
       'architecture-section',
     ]);
@@ -29,12 +29,14 @@ describe('app/page.tsx — assembled-page layout sequence (Batch 10.2)', () => {
       .toBeInTheDocument();
   });
 
-  it('decisioning-surface-placeholder renders as a marker section (no decisioning content at 10.2)', () => {
+  it('decisioning-surface renders the idle prompt at initial mount (10.3 wires state-driven content)', () => {
     render(<HomePage />);
-    const placeholder = screen.getByTestId('decisioning-surface-placeholder');
-    expect(placeholder).toBeInTheDocument();
-    // Empty at 10.2; orchestration fills this at 10.3.
-    expect(placeholder.children.length).toBe(0);
+    const surface = screen.getByTestId('decisioning-surface');
+    expect(surface).toBeInTheDocument();
+    // At initial mount, mode === 'idle' so the surface renders the
+    // institutional-register prompt (Finding-anticipated disposition).
+    expect(surface.querySelector('[data-testid="idle-prompt"]'))
+      .toBeInTheDocument();
   });
 
   it('custom-input section contains the CustomInputForm submit button', () => {
@@ -53,7 +55,7 @@ describe('app/page.tsx — assembled-page layout sequence (Batch 10.2)', () => {
   });
 });
 
-describe('app/page.tsx — Decision 39 desktop baseline (10.2 scope)', () => {
+describe('app/page.tsx — Decision 39 desktop baseline (10.2 scope preserved at 10.3)', () => {
   it('main container uses max-w-[1180px] mx-auto for the 1280px design target with 50px gutters', () => {
     render(<HomePage />);
     const main = screen.getByTestId('home-main');
@@ -73,40 +75,44 @@ describe('app/page.tsx — Decision 39 desktop baseline (10.2 scope)', () => {
     render(<HomePage />);
     const main = screen.getByTestId('home-main');
     expect(main).toHaveClass('xl:px-0');
-    // Below xl, safety padding of px-6 (24px) prevents content touching the
-    // viewport edge on narrow viewports (mobile reflow at 10.4).
     expect(main).toHaveClass('px-6');
   });
 });
 
-describe('app/page.tsx — anti-pattern guard: no orchestration imports at 10.2 (8th instance of structural-enforcement pattern)', () => {
-  // Sibling to PersonaSelector + PageHeader + PageFooter structural guards.
-  // 10.3 will add orchestration imports (useDecisioningMachine /
-  // usePersonaPlayback / useLiveDecisioning) at the same time inert callbacks
-  // become wired. This test catches a future maintainer accidentally adding
-  // an orchestration import at 10.2 — the structural marker for "layout-only,
-  // not orchestration-wired."
+describe('app/page.tsx — anti-pattern guard: layout-only at the page layer (9th instance of structural-enforcement pattern)', () => {
+  // At 10.3 the page imports DecisioningOrchestrator (lawful — it is the
+  // designated wiring layer between orchestration hooks and component
+  // callbacks) but does NOT directly import orchestration hooks. The page
+  // stays layout-only; orchestration concerns live one layer deeper.
+  //
+  // Sibling guards: PersonaSelector + AnalystControlPanel + chrome forbid
+  // orchestration imports at their layers; DecisioningOrchestrator is the
+  // single lawful consumer of the orchestration hooks; this page is layout-
+  // only above the orchestrator.
   const src = readFileSync('app/page.tsx', 'utf-8');
   const fromPaths = [...src.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
 
-  it('imports zero orchestration-layer modules at 10.2', () => {
+  it('imports DecisioningOrchestrator (lawful at 10.3 — the designated wiring layer)', () => {
+    expect(fromPaths).toContain('@/components/orchestration/DecisioningOrchestrator');
+  });
+
+  it('imports zero orchestration-layer modules directly', () => {
     for (const p of fromPaths) {
       expect(p).not.toMatch(/lib\/orchestration\b/);
     }
   });
 
-  it('imports zero API-client modules at 10.2 (no live decisioning yet)', () => {
+  it('imports zero API-client modules directly', () => {
     for (const p of fromPaths) {
       expect(p).not.toMatch(/lib\/api\b|decisioningClient/);
     }
   });
 
-  it('imports zero hooks that would imply state-machine wiring', () => {
-    // useDecisioningMachine, useLiveDecisioning, usePersonaPlayback — none
-    // imported at 10.2. The named-import surface check is a coarser signal
-    // than path checks but catches cases where the import path is a re-export.
-    // Strip block comments + line comments before matching so the 10.3
-    // forward-references in the file docstring don't trip the guard.
+  it('imports zero hooks that would imply page-layer state-machine wiring', () => {
+    // useDecisioningMachine / useLiveDecisioning / usePersonaPlayback — all
+    // consumed inside DecisioningOrchestrator, not at the page layer. Strip
+    // block + line comments before matching so docstring forward-references
+    // don't trip the guard.
     const sansComments = src
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '');
