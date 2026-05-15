@@ -404,3 +404,307 @@ describe('AnalystControlPanel — Decision 17 action-surface boundary (corollary
     expect(screen.getByRole('button', { name: 'Escalate' })).toBeInTheDocument();
   });
 });
+
+// === Task 10.1 — event-callback surface extension (Finding D / E) ===
+//
+// Three new optional callback props: onActionTaken, onOverrideModalOpen,
+// onOverrideModalClose. The render contract from Batch 8.5 is preserved
+// exactly; the panel renders identically with or without callbacks. 10.3
+// wires them; 10.1 establishes the emit-only callback surface.
+
+describe('AnalystControlPanel — Task 10.1 onActionTaken callback', () => {
+  it("fires onActionTaken('approve') when Approve is clicked", () => {
+    const onActionTaken = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onActionTaken,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(onActionTaken).toHaveBeenCalledTimes(1);
+    expect(onActionTaken).toHaveBeenCalledWith('approve');
+  });
+
+  it("fires onActionTaken('escalate') when Escalate is clicked", () => {
+    const onActionTaken = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onActionTaken,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Escalate' }));
+    expect(onActionTaken).toHaveBeenCalledTimes(1);
+    expect(onActionTaken).toHaveBeenCalledWith('escalate');
+  });
+
+  it("does NOT fire onActionTaken('override') when Override button just opens the modal (no commit yet)", () => {
+    const onActionTaken = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onActionTaken,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    expect(onActionTaken).not.toHaveBeenCalled();
+  });
+
+  it("fires onActionTaken('override') on Override modal Submit with valid content (Decision 36c)", () => {
+    const onActionTaken = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onActionTaken,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Documented basis text' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit override/i }));
+    expect(onActionTaken).toHaveBeenCalledTimes(1);
+    expect(onActionTaken).toHaveBeenCalledWith('override');
+  });
+});
+
+describe('AnalystControlPanel — Task 10.1 onOverrideModalOpen callback', () => {
+  it('fires onOverrideModalOpen when Override button is clicked (before any Submit)', () => {
+    const onOverrideModalOpen = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalOpen,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    expect(onOverrideModalOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT fire onOverrideModalOpen on Approve or Escalate', () => {
+    const onOverrideModalOpen = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalOpen,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(onOverrideModalOpen).not.toHaveBeenCalled();
+  });
+});
+
+describe('AnalystControlPanel — Task 10.1 onOverrideModalClose callback (Finding D: all five close paths)', () => {
+  it('fires onOverrideModalClose on Cancel button click', () => {
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalClose,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(onOverrideModalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onOverrideModalClose on Escape key', () => {
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalClose,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onOverrideModalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onOverrideModalClose on backdrop click', () => {
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalClose,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.click(screen.getByTestId('modal-backdrop'));
+    expect(onOverrideModalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("dual-fires onActionTaken('override') AND onOverrideModalClose on Submit (Finding D dual-emission)", () => {
+    const onActionTaken = vi.fn();
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onActionTaken,
+      onOverrideModalClose,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Override basis' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit override/i }));
+    expect(onActionTaken).toHaveBeenCalledTimes(1);
+    expect(onActionTaken).toHaveBeenCalledWith('override');
+    expect(onOverrideModalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT fire onOverrideModalClose if the modal was never opened', () => {
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalClose,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(onOverrideModalClose).not.toHaveBeenCalled();
+  });
+});
+
+describe('AnalystControlPanel — Task 10.1 persona-switch + modal-open interplay (Finding E)', () => {
+  it('switching personaId while modal is open fires onOverrideModalClose (Finding D fifth close path)', () => {
+    const onOverrideModalClose = vi.fn();
+    const maria = loadPersona('maria');
+    const carlos = loadPersona('carlos');
+    const { rerender } = render(
+      <AnalystControlPanel
+        personaId={maria.id}
+        personaName={maria.name}
+        pass1={maria.pass_1}
+        onOverrideModalClose={onOverrideModalClose}
+      />,
+    );
+    // Open the Override modal
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Switch persona while modal open
+    rerender(
+      <AnalystControlPanel
+        personaId={carlos.id}
+        personaName={carlos.name}
+        pass1={carlos.pass_1}
+        onOverrideModalClose={onOverrideModalClose}
+      />,
+    );
+
+    // Modal unmounted
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // Callback fired exactly once for the close transition
+    expect(onOverrideModalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("switching personaId while modal is open does NOT fire onActionTaken (analyst basis discarded, not committed)", () => {
+    const onActionTaken = vi.fn();
+    const maria = loadPersona('maria');
+    const carlos = loadPersona('carlos');
+    const { rerender } = render(
+      <AnalystControlPanel
+        personaId={maria.id}
+        personaName={maria.name}
+        pass1={maria.pass_1}
+        onActionTaken={onActionTaken}
+      />,
+    );
+    // Open the Override modal and type a basis (uncommitted)
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Typed but not submitted' },
+    });
+
+    // Switch persona while modal open — should DISCARD the typed basis
+    // without firing onActionTaken
+    rerender(
+      <AnalystControlPanel
+        personaId={carlos.id}
+        personaName={carlos.name}
+        pass1={carlos.pass_1}
+        onActionTaken={onActionTaken}
+      />,
+    );
+
+    expect(onActionTaken).not.toHaveBeenCalled();
+  });
+
+  it('switching personaId while modal is CLOSED does NOT fire onOverrideModalClose (Finding D guard)', () => {
+    const onOverrideModalClose = vi.fn();
+    const maria = loadPersona('maria');
+    const carlos = loadPersona('carlos');
+    const { rerender } = render(
+      <AnalystControlPanel
+        personaId={maria.id}
+        personaName={maria.name}
+        pass1={maria.pass_1}
+        onOverrideModalClose={onOverrideModalClose}
+      />,
+    );
+    // Modal is closed; never opened.
+
+    // Switch persona — should NOT spuriously fire onOverrideModalClose
+    rerender(
+      <AnalystControlPanel
+        personaId={carlos.id}
+        personaName={carlos.name}
+        pass1={carlos.pass_1}
+        onOverrideModalClose={onOverrideModalClose}
+      />,
+    );
+
+    expect(onOverrideModalClose).not.toHaveBeenCalled();
+  });
+
+  it('initial mount does NOT fire onOverrideModalClose (Finding D guard against spurious fires)', () => {
+    const onOverrideModalClose = vi.fn();
+    renderPanel({
+      personaId: 'maria',
+      personaName: 'Maria',
+      pass1: loadPersona('maria').pass_1,
+      onOverrideModalClose,
+    });
+    expect(onOverrideModalClose).not.toHaveBeenCalled();
+  });
+});
+
+describe('AnalystControlPanel — Task 10.1 callbacks are all optional (render-contract preservation)', () => {
+  it('renders identically and operates correctly with no callbacks provided', () => {
+    // No callbacks — render contract from Batch 8.5 preserved exactly.
+    renderPanel();
+    // All three buttons render
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Escalate' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Override' })).toBeInTheDocument();
+    // Approve click works without errors (no callback throw)
+    expect(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    }).not.toThrow();
+    expect(screen.getByText('Case approved')).toBeInTheDocument();
+  });
+
+  it('Override modal open + close cycle works with no callbacks provided', () => {
+    renderPanel();
+    expect(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+      fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    }).not.toThrow();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('Override Submit works with no callbacks provided', () => {
+    renderPanel();
+    expect(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: 'basis' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /submit override/i }));
+    }).not.toThrow();
+    expect(screen.getByText('Superseded by analyst override')).toBeInTheDocument();
+  });
+});

@@ -79,6 +79,25 @@
 // Modal's `banner` slot, added at Task 8.5 as the first primitive-layer
 // modification since Batch 6 closed. The banner slot exists specifically to
 // satisfy Decision 36h's inside-Modal race-banner placement requirement.
+//
+// === 10.1 EVENT-CALLBACK EXTENSION (Finding I from 9.4 spec walk) ===
+//
+// Three optional callback props added at Task 10.1 — onActionTaken,
+// onOverrideModalOpen, onOverrideModalClose. The render contract from Batch
+// 8.5 is preserved exactly; the panel renders identically with or without
+// the callbacks. 10.3 wires them to the state machine; 10.1 establishes the
+// emit-only callback surface.
+//
+// Symmetric-callback contract per Finding D: onOverrideModalClose fires on
+// EVERY modal-was-open → modal-is-closed transition, regardless of cause —
+// Submit, Cancel, Escape, backdrop, AND persona-switch-while-modal-open.
+// The persona-switch path guards with a ref-read of overrideModalOpen so
+// the callback only fires on actual transitions (not on initial mount or
+// persona switches where the modal was already closed).
+//
+// Anti-pattern guard: this component has NO knowledge of what the callbacks
+// are wired to. Sibling composition discipline to "no state-machine
+// knowledge in PersonaSelector."
 
 import { useEffect, useRef, useState } from 'react';
 import type { Pass1Output } from '@/lib/schemas/pass1';
@@ -125,6 +144,39 @@ interface AnalystControlPanelProps {
   // Optional audit-ref source override for live mode. Defaults to using
   // personaId directly as the source string.
   auditRefSource?: AuditRefSource;
+
+  // === 10.1 EVENT-CALLBACK SURFACE (Finding D disposition) ===
+  //
+  // All three callbacks are optional — the panel renders identically with or
+  // without them. 10.3 wires them; 10.1 establishes the emit-only surface.
+  // The panel has NO knowledge of what these callbacks are wired to; it only
+  // emits the canonical events. Composition discipline sibling to "no
+  // state-machine knowledge in PersonaSelector."
+
+  // Fires when the analyst commits to a decision:
+  //   - 'approve'   → on Approve confirmation block render (handleApprove)
+  //   - 'escalate'  → on Escalate confirmation block render (handleEscalate)
+  //   - 'override'  → on Override modal Submit with non-whitespace content
+  //                   (handleOverrideSubmit; NOT on Override button click —
+  //                   that just opens the modal). Dual-fires with
+  //                   onOverrideModalClose per Finding D.
+  onActionTaken?: (action: 'approve' | 'escalate' | 'override') => void;
+
+  // Fires when the Override modal mounts (Override button clicked, before
+  // any Submit).
+  onOverrideModalOpen?: () => void;
+
+  // Fires on EVERY modal-was-open → modal-is-closed transition, regardless
+  // of cause (Finding D disposition: symmetric callback semantics).
+  // The five close paths:
+  //   1. Submit (handleOverrideSubmit; dual-fires with onActionTaken)
+  //   2. Cancel button (Modal's onClose)
+  //   3. Escape key (Modal's onClose)
+  //   4. Backdrop click (Modal's onClose)
+  //   5. Persona switch while modal open (persona-switch useEffect; guarded
+  //      with `if (overrideModalOpen)` so spurious fires on persona changes
+  //      where the modal was already closed don't occur)
+  onOverrideModalClose?: () => void;
 }
 
 export function AnalystControlPanel({
@@ -134,18 +186,40 @@ export function AnalystControlPanel({
   pass3,
   raceTrigger = false,
   auditRefSource,
+  onActionTaken,
+  onOverrideModalOpen,
+  onOverrideModalClose,
 }: AnalystControlPanelProps) {
   const [actionState, setActionState] = useState<ActionState>('idle');
   const [overrideModalOpen, setOverrideModalOpen] = useState(false);
   const [record, setRecord] = useState<ConfirmationRecord | null>(null);
 
+  // Track overrideModalOpen via ref so the persona-switch useEffect can read
+  // the pre-reset value without triggering a re-run on every modal toggle.
+  // Sibling pattern to the raceTrigger prevRaceTriggerRef below.
+  const overrideModalOpenRef = useRef(overrideModalOpen);
+  useEffect(() => {
+    overrideModalOpenRef.current = overrideModalOpen;
+  }, [overrideModalOpen]);
+
   const seniorApprovalRequired = pass1.decision.senior_approval_required;
 
   // Decision 36e: persona switching mid-action resets action state.
+  // Finding D: if the Override modal was open at the moment of persona
+  // switch, fire onOverrideModalClose so the parent state machine stays
+  // in sync. Guard with the ref-read so spurious fires on personaId changes
+  // where the modal was already closed don't occur (including initial mount).
   useEffect(() => {
+    if (overrideModalOpenRef.current) {
+      onOverrideModalClose?.();
+    }
     setActionState('idle');
     setOverrideModalOpen(false);
     setRecord(null);
+    // onOverrideModalClose intentionally omitted from deps — the callback's
+    // identity should not drive the persona-switch reset (the personaId
+    // change is the only trigger we want for this reset).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaId]);
 
   // Decision 36h: race-trigger transition false→true resets action state
@@ -176,18 +250,25 @@ export function AnalystControlPanel({
   const handleApprove = () => {
     setRecord(buildRecord('approved'));
     setActionState('approved');
+    onActionTaken?.('approve');
   };
   const handleEscalate = () => {
     setRecord(buildRecord('escalated'));
     setActionState('escalated');
+    onActionTaken?.('escalate');
   };
   const handleOverride = () => {
     setOverrideModalOpen(true);
+    onOverrideModalOpen?.();
   };
   const handleOverrideSubmit = (basis: string) => {
     setRecord(buildRecord('overridden', basis));
     setActionState('overridden');
     setOverrideModalOpen(false);
+    // Dual-emission per Finding D: Submit fires BOTH the action-taken event
+    // AND the modal-close event (the parent's 10.3 wiring relies on both).
+    onActionTaken?.('override');
+    onOverrideModalClose?.();
   };
   const handleReset = () => {
     setActionState('idle');
@@ -261,7 +342,13 @@ export function AnalystControlPanel({
 
       <Modal
         open={overrideModalOpen}
-        onClose={() => setOverrideModalOpen(false)}
+        onClose={() => {
+          setOverrideModalOpen(false);
+          // Finding D: Cancel button / Escape key / backdrop click all flow
+          // through Modal's onClose. Fires the modal-close event regardless
+          // of which of the three triggered it.
+          onOverrideModalClose?.();
+        }}
         onSubmit={handleOverrideSubmit}
         title={`Override ${personaName}'s recommendation`}
         banner={
