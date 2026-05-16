@@ -493,7 +493,7 @@ describe('DecisioningOrchestrator — ExaminerNotes mounts at terminal (persona 
     ).toBeInTheDocument();
   });
 
-  it('live mode terminal (passed_first_audit): ExaminerNotes renders Maria original content + live-mode header', async () => {
+  it("live mode terminal (passed_first_audit): ExaminerNotes renders Maria original content + 'Custom case' live-mode header (Iteration 2 livePersonaName rework)", async () => {
     stubFetchSequence(ok(maria.pass_1), ok(maria.pass_2));
     render(<DecisioningOrchestrator />);
     fireLiveSubmit(maria.profile);
@@ -509,15 +509,37 @@ describe('DecisioningOrchestrator — ExaminerNotes mounts at terminal (persona 
     expect(
       screen.getByText(maria.pass_1.summary_finding),
     ).toBeInTheDocument();
-    // Live-mode header: livePersonaName is liveProfile.customer_reference
-    // (since it's a non-empty string in the fixture); customerReference is
-    // also liveProfile.customer_reference. Iteration 1 Things-to-Flag #41:
-    // these two render duplicative for live mode — surfaced for Iteration 2
-    // disposition.
+    // Iteration 2 Item 2: livePersonaName is now the 'Custom case' mode-label
+    // (not duplicative with customerReference). Header reads
+    // "Custom case · <customer_reference>" — distinct strings, role-
+    // distinguished (label vs identifier).
     expect(
-      screen.getByText(
+      screen.getByText(`Custom case · ${maria.profile.customer_reference}`),
+    ).toBeInTheDocument();
+    // Negative regression-guard against the Iteration 1 duplication.
+    expect(
+      screen.queryByText(
         `${maria.profile.customer_reference} · ${maria.profile.customer_reference}`,
       ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("live mode Override modal title uses 'Custom case' mode-label (Iteration 2 livePersonaName rework, second affected surface)", async () => {
+    stubFetchSequence(ok(maria.pass_1), ok(maria.pass_2));
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Override' }),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Override' }));
+    // Modal title reads "Override Custom case's recommendation" — institutional-
+    // register mode-disclosure-by-label.
+    expect(
+      screen.getByText("Override Custom case's recommendation"),
     ).toBeInTheDocument();
   });
 });

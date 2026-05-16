@@ -92,10 +92,23 @@ type Mode = 'idle' | 'persona' | 'live';
 // right") that would break under 10.4's mobile reflow.
 const IDLE_PROMPT = 'Select a persona or fill the custom case form to begin.';
 
-// Live-mode fallback per Finding E refinement. When profile.customer_reference
-// is empty or whitespace-only, render "this case" so the Override modal title
-// reads grammatically ("Override this case's recommendation").
-const LIVE_PERSONA_NAME_FALLBACK = 'this case';
+// Persona-mode fallback for when listPersonas().find returns nothing
+// (defensive; the unhappy path is improbable since PersonaSelector emits a
+// valid PersonaId via the 10.1 contract, but if persona mode ever surfaces
+// without a valid id, render "this case" rather than empty string).
+const PERSONA_NAME_FALLBACK = 'this case';
+
+// Live-mode personaName label per Batch 10.4 Iteration 2 Item 2 rework
+// (Iteration 1 Things-to-Flag #41 disposition). Mode-label rather than
+// customer-reference duplication; restores the persona-mode role
+// distinction between what-kind-of-case (label) and who (customer
+// reference). Affects two surfaces: ExaminerNotes header (line 1 = label,
+// line 2 = customer reference; no longer duplicative) and AnalystControlPanel
+// Override modal title ("Override Custom case's recommendation"). Microcopy
+// 'Custom case' is the Iteration 1 close-out recommendation; Batch 11 may
+// substitute a refined label ('Custom audit', 'Submitted case', 'Live
+// submission') without further code changes — only this constant value.
+const LIVE_MODE_LABEL = 'Custom case';
 
 // In-flight indicator for 'pass_3' state per Finding F refinement. Minimal
 // text indicator in --text-tertiary; no animation. Batch 11 ratification.
@@ -213,9 +226,13 @@ export function DecisioningOrchestrator() {
   // reused here for the AnalystControlPanel modal title).
   const personas = listPersonas();
   const personaName =
-    personas.find((p) => p.id === personaId)?.name ?? LIVE_PERSONA_NAME_FALLBACK;
-  const livePersonaName =
-    (liveProfile?.customer_reference ?? '').trim() || LIVE_PERSONA_NAME_FALLBACK;
+    personas.find((p) => p.id === personaId)?.name ?? PERSONA_NAME_FALLBACK;
+  // Live-mode label is a fixed mode-disclosure string, NOT derived from
+  // liveProfile.customer_reference. Iteration 1 surfaced a 100%-of-live-renders
+  // duplication ("X · X") when both header lines and the modal title shared
+  // the customer_reference value; the mode-label rework restores role
+  // distinction (label vs identifier).
+  const livePersonaName = LIVE_MODE_LABEL;
 
   // Effective Pass 1 for AnalystControlPanel + RecommendationCard at
   // terminal states. When Pass 3 fired and produced a correction, the
