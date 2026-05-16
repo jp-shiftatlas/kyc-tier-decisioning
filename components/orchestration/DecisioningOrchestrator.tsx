@@ -62,7 +62,7 @@
 // behavior (no state-machine knowledge in the assertions; tests observe DOM
 // state, not internal state-machine state).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePersonaPlayback } from '@/lib/orchestration/personaPlayback';
 import { useLiveDecisioning } from '@/lib/orchestration/liveDecisioning';
 import {
@@ -71,6 +71,7 @@ import {
 } from '@/lib/orchestration/passHeadlineMap';
 import {
   listPersonas,
+  loadPersona,
   type PersonaId,
 } from '@/lib/schemas/personaAdapters';
 import type { CustomerProfile } from '@/lib/schemas/customerProfile';
@@ -81,6 +82,7 @@ import { PassHeadline } from '@/components/decisioning/PassHeadline';
 import { RecommendationCard } from '@/components/decisioning/RecommendationCard';
 import { AuditPanelTicker } from '@/components/decisioning/AuditPanelTicker';
 import { Pass3CorrectionBanner } from '@/components/decisioning/Pass3CorrectionBanner';
+import { ExaminerNotes } from '@/components/decisioning/ExaminerNotes';
 import { AnalystControlPanel } from '@/components/decisioning/AnalystControlPanel';
 
 type Mode = 'idle' | 'persona' | 'live';
@@ -220,6 +222,58 @@ export function DecisioningOrchestrator() {
   // corrected output is the "current" Pass 1 the analyst is acting on.
   const effectivePass1 = pass3Output?.corrected_pass_1_output ?? pass1Output;
 
+  // === ExaminerNotes content selection (Batch 10.4 Iteration 1) ===
+  //
+  // displayPass1 — single per-render selection of which Pass 1 to display in
+  // ExaminerNotes. Replicates the AnalystControlPanel dual-mode pass1 pattern
+  // inline rather than extracting (Iteration 1 Finding E disposition: two
+  // consumers don't justify a helper; revisit at Batch 11 if a third arises).
+  //
+  // Selection rule:
+  //   - corrected_and_verified / correction_failed_surfaced  → effectivePass1
+  //     (corrected, since pass3Output is set at these states)
+  //   - everything else  → pass1Output (original)
+  //
+  // At passed_first_audit: pass3Output is null, effectivePass1 === pass1Output,
+  // so the two branches converge — `pass1Output` is the correct selection here
+  // and the "mid-flight original / terminal corrected" framing applies even
+  // though it's a terminal state, because no Pass 3 fired.
+  //
+  // At failed: original pass1Output renders regardless of whether pass3Output
+  // exists (e.g., failed at re-audit after Pass 3 already returned). Per
+  // Iteration 1 directive test surface: "Mid-flight content: original Pass 1
+  // summary_finding + examiner_notes_full at pass_2 / pass_3 / re_audit /
+  // failed." Failed is bundled with mid-flight for content-selection purposes.
+  const displayPass1 =
+    stateValue === 'corrected_and_verified' ||
+    stateValue === 'correction_failed_surfaced'
+      ? effectivePass1
+      : pass1Output;
+
+  // customerReference — ExaminerNotes header second line.
+  // Persona mode: loadPersona for the validated profile.customer_reference.
+  //   Slightly redundant with usePersonaPlayback's internal loadPersona
+  //   (the 9.3 hook validates the persona JSON), but the hook does not
+  //   expose the loaded profile and extending the 9.3 contract is out of
+  //   scope for Iteration 1. Memoized on personaId so the redundant call
+  //   fires only on persona change, not on every render.
+  // Live mode: liveProfile.customer_reference from the submitted form.
+  //   Dep is liveProfile (the React state ref); the ref is stable across
+  //   re-renders unless setLiveProfile is called (which only fires inside
+  //   handleLiveSubmit), so the memo re-fires correctly only on new live
+  //   submissions.
+  const customerReference = useMemo(() => {
+    if (mode === 'live') return liveProfile?.customer_reference ?? '';
+    if (personaId) {
+      try {
+        return loadPersona(personaId).profile.customer_reference;
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  }, [mode, personaId, liveProfile]);
+
   // AnalystControlPanel callbacks: live mode only per Decision 36h
   // Implementation Requirements. Persona mode passes no callbacks; the 10.1
   // optional-callback contract handles the absence cleanly. Discipline made
@@ -266,6 +320,25 @@ export function DecisioningOrchestrator() {
     );
   };
 
+  // ExaminerNotes mount helper. Mounts at all post-pass_1 states where
+  // displayPass1 is non-null. Selection of original vs corrected content is
+  // baked into displayPass1 above per Iteration 1 Finding E disposition.
+  // Persona-mode personaName = persona display name; live-mode personaName =
+  // livePersonaName (which derives from liveProfile.customer_reference with
+  // 'this case' fallback — Iteration 1 Things-to-Flag #41 deferred this
+  // assignment for close-out review; live-mode header may end up showing
+  // duplicate strings on the two header lines).
+  const renderExaminerNotes = () => {
+    if (!displayPass1) return null;
+    return (
+      <ExaminerNotes
+        pass1={displayPass1}
+        personaName={mode === 'live' ? livePersonaName : personaName}
+        customerReference={customerReference}
+      />
+    );
+  };
+
   // State-driven decisioning surface render.
   const decisioningSurface = (() => {
     switch (stateValue) {
@@ -298,6 +371,10 @@ export function DecisioningOrchestrator() {
         // the directive's render table only listed AnalystControlPanel at
         // terminal states, but the directive's race-test surface implies
         // mid-flight mounting. Panel mounts from pass_2 onward.
+        //
+        // ExaminerNotes mounts here too (Batch 10.4 Iteration 1) — reads
+        // displayPass1 which selects original Pass 1 content at mid-flight
+        // states per Iteration 1 directive content-selection rule.
         const auditData = stateValue === 'pass_2' ? pass2Output : reAuditOutput;
         return (
           <div className="flex flex-col gap-4">
@@ -309,6 +386,7 @@ export function DecisioningOrchestrator() {
                 live={mode === 'live'}
               />
             )}
+            {renderExaminerNotes()}
             {renderAnalystPanel({ pass1Override: pass1Output })}
           </div>
         );
@@ -317,7 +395,8 @@ export function DecisioningOrchestrator() {
       case 'pass_3':
         // Pass 3 in flight — no pass3Output yet. Panel mounts with the
         // original pass1Output. The "Correcting…" indicator signals the
-        // in-flight correction work.
+        // in-flight correction work. ExaminerNotes mounts with original
+        // Pass 1 content (Batch 10.4 Iteration 1).
         return (
           <div className="flex flex-col gap-4">
             {headlineProps && <PassHeadline {...headlineProps} />}
@@ -327,12 +406,15 @@ export function DecisioningOrchestrator() {
             >
               {PASS_3_IN_FLIGHT_LABEL}
             </p>
+            {renderExaminerNotes()}
             {renderAnalystPanel({ pass1Override: pass1Output })}
           </div>
         );
 
       case 'passed_first_audit': {
         if (!effectivePass1 || !pass2Output) return null;
+        // ExaminerNotes mounts with original Pass 1 content (no Pass 3 fired
+        // here; displayPass1 === pass1Output === effectivePass1).
         return (
           <div className="flex flex-col gap-6">
             <RecommendationCard pass1={effectivePass1} />
@@ -341,6 +423,7 @@ export function DecisioningOrchestrator() {
               shouldAnimate={false}
               live={mode === 'live'}
             />
+            {renderExaminerNotes()}
             {renderAnalystPanel()}
           </div>
         );
@@ -348,6 +431,9 @@ export function DecisioningOrchestrator() {
 
       case 'corrected_and_verified': {
         if (!effectivePass1 || !reAuditOutput) return null;
+        // ExaminerNotes mounts with CORRECTED Pass 1 content (Pass 3 fired,
+        // re-audit passed clean; displayPass1 === effectivePass1 ===
+        // pass3Output.corrected_pass_1_output).
         return (
           <div className="flex flex-col gap-6">
             <RecommendationCard pass1={effectivePass1} />
@@ -356,6 +442,7 @@ export function DecisioningOrchestrator() {
               shouldAnimate={false}
               live={mode === 'live'}
             />
+            {renderExaminerNotes()}
             {renderAnalystPanel()}
           </div>
         );
@@ -391,6 +478,12 @@ export function DecisioningOrchestrator() {
                 live={mode === 'live'}
               />
             </CapReachedSection>
+            {/* ExaminerNotes mounts BETWEEN the final "Re-audit findings"
+                section and AnalystControlPanel — preserves the canonical
+                visual_system.md:186 ordering (audit panel → examiner notes →
+                analyst panel) inside the elaborated cap-reached layout.
+                Renders CORRECTED Pass 1 content (Pass 3 fired). */}
+            {renderExaminerNotes()}
             {renderAnalystPanel()}
           </div>
         );
@@ -398,6 +491,14 @@ export function DecisioningOrchestrator() {
 
       case 'failed': {
         if (!error) return null;
+        // ExaminerNotes mounts at failed state with ORIGINAL Pass 1 content
+        // per Iteration 1 directive ("Mid-flight content: original Pass 1 ...
+        // at pass_2 / pass_3 / re_audit / failed"). Positioned BELOW the
+        // error message (Iteration 1 Finding F disposition): error is the
+        // primary signal; notes are supplementary context. AnalystControlPanel
+        // intentionally does NOT mount at failed (no analyst action when the
+        // system errored out — eighth-sub-class-candidate divergence per
+        // Iteration 1 Finding F).
         return (
           <div className="flex flex-col gap-4">
             {headlineProps && <PassHeadline {...headlineProps} />}
@@ -407,6 +508,7 @@ export function DecisioningOrchestrator() {
             >
               {error.message}
             </p>
+            {renderExaminerNotes()}
           </div>
         );
       }

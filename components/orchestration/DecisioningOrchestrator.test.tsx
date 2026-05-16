@@ -423,6 +423,274 @@ describe('DecisioningOrchestrator — failed state (Finding H workaround for §5
 // Structural guards — composition discipline at the orchestration layer
 // =====================================================================
 
+// =====================================================================
+// ExaminerNotes wiring — Batch 10.4 Iteration 1
+// =====================================================================
+
+describe('DecisioningOrchestrator — ExaminerNotes does NOT mount at idle / pass_1 (Iteration 1)', () => {
+  it('idle state: no Examiner Notes heading rendered', () => {
+    render(<DecisioningOrchestrator />);
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('pass_1 in flight (Pass 1 fetch pending): no Examiner Notes heading rendered', async () => {
+    // Defer Pass 1 fetch so the machine stays at pass_1 — pass1Output is null
+    // until RESOLVE_PASS_1 fires, so displayPass1 is null and ExaminerNotes
+    // does not mount.
+    const pass1Deferred = deferred<unknown>();
+    const spy = vi.fn();
+    spy.mockReturnValueOnce(pass1Deferred.promise);
+    vi.stubGlobal('fetch', spy);
+
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    // Wait for state to advance from idle to pass_1 (the headline appears).
+    await waitFor(() =>
+      expect(
+        screen.getByText('Pass 1 — Tier recommendation'),
+      ).toBeInTheDocument(),
+    );
+
+    // ExaminerNotes does NOT mount at pass_1 (Pass 1 in flight, no
+    // pass1Output yet).
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).not.toBeInTheDocument();
+
+    // Clean up the dangling promise so afterEach unstubs cleanly.
+    pass1Deferred.resolve(ok(maria.pass_1));
+  });
+});
+
+describe('DecisioningOrchestrator — ExaminerNotes mounts at terminal (persona mode + live mode)', () => {
+  it('persona mode terminal (passed_first_audit): ExaminerNotes renders Maria original content + persona-mode header', async () => {
+    render(<DecisioningOrchestrator />);
+    fireEvent.click(screen.getByRole('button', { name: 'Select Maria' }));
+
+    // Terminal state reached when Maria's RecommendationCard appears.
+    await waitFor(() => {
+      const surface = screen.getByTestId('decisioning-surface');
+      expect(within(surface).getByText('Standard')).toBeInTheDocument();
+    });
+
+    // ExaminerNotes heading present.
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).toBeInTheDocument();
+    // Maria's original summary_finding renders (no Pass 3 fired here).
+    expect(
+      screen.getByText(maria.pass_1.summary_finding),
+    ).toBeInTheDocument();
+    // Persona-mode header shows persona name + customer reference.
+    // Maria's listPersonas() name + Maria's profile.customer_reference.
+    expect(
+      screen.getByText(
+        `${maria.name} · ${maria.profile.customer_reference}`,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('live mode terminal (passed_first_audit): ExaminerNotes renders Maria original content + live-mode header', async () => {
+    stubFetchSequence(ok(maria.pass_1), ok(maria.pass_2));
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    await waitFor(() => {
+      const surface = screen.getByTestId('decisioning-surface');
+      expect(within(surface).getByText('Standard')).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(maria.pass_1.summary_finding),
+    ).toBeInTheDocument();
+    // Live-mode header: livePersonaName is liveProfile.customer_reference
+    // (since it's a non-empty string in the fixture); customerReference is
+    // also liveProfile.customer_reference. Iteration 1 Things-to-Flag #41:
+    // these two render duplicative for live mode — surfaced for Iteration 2
+    // disposition.
+    expect(
+      screen.getByText(
+        `${maria.profile.customer_reference} · ${maria.profile.customer_reference}`,
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('DecisioningOrchestrator — Pass 3 dual-mode content selection (Iteration 1 Finding E)', () => {
+  it('corrected_and_verified: ExaminerNotes renders CORRECTED content (Carlos summary, not Maria)', async () => {
+    stubFetchSequence(
+      ok(maria.pass_1),
+      ok(pass2Correction),
+      ok(pass3Fixture),
+      ok(reAuditClean),
+    );
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    // Terminal: corrected tier "EDD" shown by RecommendationCard.
+    await waitFor(() => {
+      const surface = screen.getByTestId('decisioning-surface');
+      expect(within(surface).getByText('EDD')).toBeInTheDocument();
+    });
+
+    // displayPass1 === effectivePass1 === pass3.corrected_pass_1_output === carlos.pass_1.
+    expect(
+      screen.getByText(carlos.pass_1.summary_finding),
+    ).toBeInTheDocument();
+    // Positive regression-guard against the "original at terminal" mistake.
+    expect(
+      screen.queryByText(maria.pass_1.summary_finding),
+    ).not.toBeInTheDocument();
+  });
+
+  it('correction_failed_surfaced: ExaminerNotes renders CORRECTED content (Carlos summary) inside cap-reached layout', async () => {
+    stubFetchSequence(
+      ok(maria.pass_1),
+      ok(pass2Correction),
+      ok(pass3Fixture),
+      ok(reAuditStillFlagged),
+    );
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('cap-reached-surface')).toBeInTheDocument();
+    });
+
+    // ExaminerNotes mounts AFTER the four CapReachedSections, BEFORE the
+    // analyst panel — preserves canonical visual_system.md:186 ordering.
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).toBeInTheDocument();
+    // Corrected content (Carlos) renders.
+    expect(
+      screen.getByText(carlos.pass_1.summary_finding),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('DecisioningOrchestrator — ExaminerNotes at failed state (Iteration 1 Finding F)', () => {
+  it('failed at Pass 2: ExaminerNotes mounts with ORIGINAL Pass 1 content, AnalystControlPanel does NOT mount', async () => {
+    const errorBody: DecisioningError = {
+      pass: 2,
+      errorType: 'upstream_timeout',
+      message: 'Pass 2 timed out. Please try again.',
+      retryable: true,
+    };
+    const spy = vi.fn();
+    spy.mockResolvedValueOnce(ok(maria.pass_1));
+    spy.mockResolvedValueOnce({ ok: false, status: 503, json: async () => errorBody });
+    vi.stubGlobal('fetch', spy);
+
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('failed-error-message')).toBeInTheDocument();
+    });
+
+    // ExaminerNotes mounts with Maria's original content.
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Examiner Notes' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(maria.pass_1.summary_finding),
+    ).toBeInTheDocument();
+    // AnalystControlPanel does NOT mount at failed state — eighth-sub-class
+    // divergence-by-design per Iteration 1 Finding F.
+    expect(
+      screen.queryByRole('button', { name: 'Approve' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Override' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('failed state: ExaminerNotes positioned BELOW the error message', async () => {
+    const errorBody: DecisioningError = {
+      pass: 2,
+      errorType: 'upstream_timeout',
+      message: 'Pass 2 timed out.',
+      retryable: true,
+    };
+    const spy = vi.fn();
+    spy.mockResolvedValueOnce(ok(maria.pass_1));
+    spy.mockResolvedValueOnce({ ok: false, status: 503, json: async () => errorBody });
+    vi.stubGlobal('fetch', spy);
+
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('failed-error-message')).toBeInTheDocument();
+    });
+
+    // Locate the error message and the Examiner Notes heading; verify the
+    // heading comes AFTER the error in document order (DOM positioning per
+    // Iteration 1 Finding F disposition).
+    const errorEl = screen.getByTestId('failed-error-message');
+    const examinerHeading = screen.getByRole('heading', {
+      level: 2,
+      name: 'Examiner Notes',
+    });
+    expect(
+      errorEl.compareDocumentPosition(examinerHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+});
+
+describe('DecisioningOrchestrator — ExaminerNotes mid-flight → terminal boundary substitution (Iteration 1 hook-integration)', () => {
+  it('pass_3 in flight: ExaminerNotes shows ORIGINAL content; corrected_and_verified terminal: ExaminerNotes shows CORRECTED content', async () => {
+    // Defer Pass 3 so the boundary transition can be observed.
+    const pass3Deferred = deferred<unknown>();
+    const spy = vi.fn();
+    spy
+      .mockResolvedValueOnce(ok(maria.pass_1))
+      .mockResolvedValueOnce(ok(pass2Correction))
+      .mockReturnValueOnce(pass3Deferred.promise)
+      .mockResolvedValueOnce(ok(reAuditClean));
+    vi.stubGlobal('fetch', spy);
+
+    render(<DecisioningOrchestrator />);
+    fireLiveSubmit(maria.profile);
+
+    // Wait for pass_3 state (Pass 3 in flight). At pass_3, ExaminerNotes
+    // renders Maria's ORIGINAL summary_finding (mid-flight content rule).
+    await waitFor(() =>
+      expect(screen.getByTestId('pass-3-in-flight')).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText(maria.pass_1.summary_finding),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(carlos.pass_1.summary_finding),
+    ).not.toBeInTheDocument();
+
+    // Resolve Pass 3 → state advances pass_3 → re_audit → corrected_and_verified.
+    await act(async () => {
+      pass3Deferred.resolve(ok(pass3Fixture));
+    });
+
+    // At corrected_and_verified, displayPass1 swaps to the corrected content.
+    // ExaminerNotes re-renders with Carlos's summary; the original is gone.
+    await waitFor(() => {
+      expect(
+        screen.getByText(carlos.pass_1.summary_finding),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(maria.pass_1.summary_finding),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('DecisioningOrchestrator — structural guards: lawful orchestration consumer, no API leakage', () => {
   // This component IS the designated wiring layer. Orchestration hook
   // imports are lawful here; API client imports are NOT (the hooks route
