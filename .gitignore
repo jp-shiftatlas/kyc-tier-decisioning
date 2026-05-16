@@ -42,3 +42,6 @@ test-results/
 
 # TypeScript incremental build artifact (Next 16 generates this in working tree)
 *.tsbuildinfo
+
+# Claude Code worktrees — local-only filesystem state
+.claude/worktrees/
