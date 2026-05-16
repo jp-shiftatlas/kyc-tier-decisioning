@@ -44,6 +44,20 @@
 // it at a glance helps the compliance officer reading the panel. Included
 // alongside the headline. If JP wants this dropped, the deviation is small
 // and reversible.
+//
+// === RESPONSIVE REFLOW (Batch 10.4 Iteration 2 Item 1) ===
+//
+// Decision 39 functional floor (≥768px to <1024px viewport): "audit panel
+// becomes scrollable list". Implemented at the Card container via
+// `max-h-[60vh] overflow-y-auto`; the panel scrolls internally below lg.
+// At lg (≥1024px) and above, `lg:max-h-none lg:overflow-y-visible` removes
+// the constraint per Decision 39 holding-target framing ("density preserved").
+//
+// 60vh ceiling is the Iteration 2 default; Batch 11 visual review ratifies
+// the exact value (Things-to-Flag #48). Ticker animation coordinates cleanly
+// with the scroll container: newly-revealed checks below the visible fold
+// remain accessible via user scroll without auto-scroll behavior, which
+// would conflict with the analyst's reading position.
 
 import type { Pass2Output, AuditCheck } from '@/lib/schemas/pass2';
 import { Card } from '@/components/primitives/Card';
@@ -99,7 +113,10 @@ export function AuditPanel({ pass2, revealedCount, live = false, startedAt }: Au
   const hasDc07 = visible.some(isDc07);
 
   return (
-    <Card variant="elevated" className="space-y-6">
+    <Card
+      variant="elevated"
+      className="space-y-6 max-h-[60vh] overflow-y-auto lg:max-h-none lg:overflow-y-visible"
+    >
       <header className="space-y-1">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <div className="flex items-baseline gap-3">

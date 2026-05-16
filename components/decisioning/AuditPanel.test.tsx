@@ -147,3 +147,31 @@ describe('AuditPanel — severity strip in header', () => {
     expect(screen.getByText('quality')).toBeInTheDocument();
   });
 });
+
+describe('AuditPanel — mobile reflow per Decision 39 functional floor (Batch 10.4 Iteration 2)', () => {
+  // Decision 39: at functional floor (≥768 to <1024px viewport), the audit
+  // panel becomes a scrollable list; at lg (≥1024px) and above, density is
+  // preserved (no scroll constraint). Class-string assertion verifies the
+  // responsive utilities are correctly applied; actual viewport-conditional
+  // rendering is a Batch 11 Playwright e2e concern (jsdom doesn't implement
+  // matchMedia).
+  it('Card container declares max-h-[60vh] + overflow-y-auto at base (functional floor: scrollable list)', () => {
+    const p = loadPersona('maria');
+    const { container } = render(
+      <AuditPanel pass2={p.pass_2} revealedCount={p.pass_2.checks.length} />,
+    );
+    const outer = container.firstElementChild!;
+    expect(outer).toHaveClass('max-h-[60vh]');
+    expect(outer).toHaveClass('overflow-y-auto');
+  });
+
+  it('Card container declares lg: overrides that remove the constraint at design-target viewports (holding target: density preserved)', () => {
+    const p = loadPersona('maria');
+    const { container } = render(
+      <AuditPanel pass2={p.pass_2} revealedCount={p.pass_2.checks.length} />,
+    );
+    const outer = container.firstElementChild!;
+    expect(outer).toHaveClass('lg:max-h-none');
+    expect(outer).toHaveClass('lg:overflow-y-visible');
+  });
+});

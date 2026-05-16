@@ -153,3 +153,45 @@ describe('ExaminerNotes — Decision 37 Source Serif 4 editorial register', () =
     expect(summary).toHaveClass('leading-loose');
   });
 });
+
+describe('ExaminerNotes — header overflow behavior with long customer_reference (Batch 10.4 Iteration 2 verification)', () => {
+  // Iteration 2 directive Finding G additional ask: verify graceful wrap at
+  // md viewport with a synthetic long customer_reference (free-form input
+  // like an extended company name or compound identifier). Flag for Batch 11
+  // if overflow risk surfaces.
+  const LONG_CUSTOMER_REFERENCE =
+    'Global Bancshares Holdings Private Limited (Persona Z-2026-001-EXT)'; // 65 chars
+
+  it('renders the long customer_reference verbatim without truncation', () => {
+    const p = loadPersona('maria');
+    render(
+      <ExaminerNotes
+        pass1={p.pass_1}
+        personaName="Custom case"
+        customerReference={LONG_CUSTOMER_REFERENCE}
+      />,
+    );
+    // Full header line renders; long string is present in the DOM.
+    expect(
+      screen.getByText(`Custom case · ${LONG_CUSTOMER_REFERENCE}`),
+    ).toBeInTheDocument();
+  });
+
+  it('header <p> does NOT declare truncation or no-wrap utilities — text wraps naturally', () => {
+    const p = loadPersona('maria');
+    render(
+      <ExaminerNotes
+        pass1={p.pass_1}
+        personaName="Custom case"
+        customerReference={LONG_CUSTOMER_REFERENCE}
+      />,
+    );
+    const headerLine = screen.getByText(`Custom case · ${LONG_CUSTOMER_REFERENCE}`);
+    // Negative-guard: no truncate, no whitespace-nowrap, no overflow-hidden
+    // on the header line or its container. The browser wraps the text via
+    // default <p> rendering at the parent Card's content width.
+    expect(headerLine).not.toHaveClass('truncate');
+    expect(headerLine).not.toHaveClass('whitespace-nowrap');
+    expect(headerLine).not.toHaveClass('overflow-hidden');
+  });
+});
