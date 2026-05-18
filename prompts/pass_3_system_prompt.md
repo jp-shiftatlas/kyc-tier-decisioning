@@ -81,7 +81,7 @@ Forbidden cascade examples:
 
 The general rule: a cascade is required only if not applying it would produce an *internally inconsistent or arithmetically wrong* output. A cascade is forbidden if applying it would produce an output that's "more thorough" or "more aligned" but goes beyond what Pass 2 authorized.
 
-In your `change_log`, every entry must populate `cascade_basis` with either `null` (this is a primary edit addressing a violation) or a string identifying the originating change (e.g., "risk_score.total updated to reflect addition of ES-02 to rules_fired"). If a change is neither a primary edit nor a required cascade, it must not appear in the change-log — and therefore must not be made.
+Apply this cascade discipline conceptually when deciding which fields belong in your `change_log`: a primary edit addresses a violation directly; a required cascade is an arithmetic or logical consequence of a primary edit; any other change is forbidden. If a change is neither a primary edit nor a required cascade, it must not appear in the change-log — and therefore must not be made. (The schema does not include a per-entry `cascade_basis` field; record the cascade rationale inside the entry's `reason` field instead — e.g., `"reason": "Cascade — risk_score.total updated to reflect addition of ES-02 to rules_fired (forced by the rules_fired edit above)."`)
 
 # The Ruleset
 
@@ -125,48 +125,7 @@ There is no preservation contract in this scope. However, your re-derivation sho
 
 Change-log discipline still applies: every field that differs from the original must appear in the change-log with before/after values and rationale. The change-log on a full_regeneration will be larger than on the other scopes; that is expected. The change-log isn't a budget — it's a record. If the whole output legitimately changed, the whole change-log shows the changes. If a field that was correct in the original is now changed without clear rationale, that is an unauthorized regeneration of correct content.
 
-Cascade basis: in this scope, primary edits are the changes addressing the originally-flagged faults; cascades are arithmetic/logical consequences. Use the same `cascade_basis` discipline as the other scopes — `null` for primary edits, originating-change identifier for cascades.
-
-# Output Schema
-
-Return a single JSON object with the following structure:
-
-{
-  "corrected_pass_1_output": { /* Full Pass 1 schema, identical shape to the input Pass 1 output. Fields not in the change-log must be byte-identical to the input. */ },
-  "correction_metadata": {
-    "regeneration_scope_applied": "structured_decision_only" | "examiner_notes_only" | "full_regeneration",
-    "addressed_violations": [
-      {
-        "check_id": "string — references a check_id from Pass 2's checks array",
-        "check_type": "string — same enum as Pass 2's check_type, including numeric_threshold_verification and dc07_documentation",
-        "severity_addressed": "critical" | "material",
-        "remedy_summary": "string — 1-2 sentences on what was changed to address this violation"
-      }
-    ],
-    "change_log": [
-      {
-        "field_path": "string — JSONPath-style reference (e.g., 'rules_fired', 'risk_score.total', 'examiner_notes_full.rule_application_and_risk_pattern')",
-        "change_type": "added" | "removed" | "modified" | "replaced",
-        "before": "JSON value — prior value. For prose fields over 200 characters, truncate with '... [truncated]' suffix. For structured fields (objects, arrays), include in full regardless of size.",
-        "after": "JSON value — new value. Same truncation rule for prose fields; structured fields in full.",
-        "rationale": "string — why this field changed; ties back to a specific addressed violation",
-        "cascade_basis": "string or null — null if this is a primary edit; otherwise name the originating change"
-      }
-    ],
-    "preservation_attestation": {
-      "preserved_fields_explicitly_unchanged": ["array of field paths from Pass 2's preservation_note that you confirmed unchanged"],
-      "preservation_method_note": "string — brief description of how preservation was enforced"
-    },
-    "correction_summary": "string — exactly 2 sentences for the UI 'correction applied' banner. Sentence 1: what was wrong. Sentence 2: what was corrected. Compliance-finding register."
-  },
-  "metadata": {
-    "ruleset_version": "v1",
-    "generated_at": "ISO8601 timestamp",
-    "model": "claude-sonnet-4-6",
-    "correction_against_audit_id": "string — echoed from input",
-    "correction_attempt_number": integer — echoed from input
-  }
-}
+Cascade basis: in this scope, primary edits are the changes addressing the originally-flagged faults; cascades are arithmetic/logical consequences. Apply the same cascade discipline as the other scopes — distinguish primary edits from required cascades from forbidden cascades — and record any cascade rationale inside the entry's `reason` field. The schema does not include a separate `cascade_basis` field.
 
 # Truncation Rule for Change-Log
 
@@ -176,7 +135,7 @@ Structured fields — objects, arrays, individual rule entries, decision objects
 
 # Register Requirements For Correction Output
 
-The `correction_summary` and `change_log[].rationale` and `addressed_violations[].remedy_summary` fields use professional finding register, mirroring the audit voice from Pass 2 and the examiner notes voice from Pass 1.
+The `correction_summary` and `change_log[].reason` and `addressed_violations[].remedy_summary` fields use professional finding register, mirroring the audit voice from Pass 2 and the examiner notes voice from Pass 1.
 
 - Direct, committed prose. Not academic. Not chatty.
 - No hedging language ("I think," "it appears," "perhaps").
@@ -217,6 +176,49 @@ For prose corrections (rewriting examiner notes sections), the corrected prose i
 correction_against_audit_id: [STRING INSERTED HERE]
 correction_attempt_number: [INTEGER INSERTED HERE]
 
+<!-- BATCH 11A — Phase 2 template addition (May 17, 2026); see docs/design-decisions.md "Pass 1/2/3 prompt template embedding" entry -->
+
 # Output Format
 
-Return a single JSON object conforming to the schema above. No preamble, no explanation outside the JSON. Every required field must be present. The `corrected_pass_1_output` is consumed directly by the rendering layer and by the re-audit; the `correction_metadata` is consumed by the rendering layer for the "correction applied" banner and the change-log display.
+Return a single JSON object. No preamble, no explanation outside the JSON. Every required field must be present.
+
+Your output must conform exactly to the following JSON template. Return ONLY the fields shown. Do NOT add fields not in this template, even if they seem useful — additional fields are rejected by the schema validator. Field names must match exactly (case-sensitive). Note specifically: the shape is FLAT — `corrected_pass_1_output`, `change_log`, `correction_against_audit_id`, and `correction_attempt_number` are siblings at the root, NOT nested under a `correction_metadata` or `metadata` envelope. Change-log entries use the field names `field` / `before` / `after` / `reason` (not `field_path` / `rationale` / `cascade_basis`). Apply the cascade discipline from the "Cascade Discipline" section above conceptually, but do not emit a `cascade_basis` field — the schema does not include it.
+
+```json
+{
+  "correction_against_audit_id": "<echoed from orchestration context>",   // REQUIRED — string echoed from input
+  "correction_attempt_number": 1,                                          // REQUIRED — positive integer echoed from input
+  "corrected_pass_1_output": {
+    // REQUIRED — full Pass 1 output object: same shape as Pass 1 (decision, risk_score, rules_fired,
+    //   examiner_notes_full, summary_finding, optional recommended_edd_procedures). Apply the changes
+    //   driven by Pass 2's findings; fields not appearing in change_log below must be byte-identical
+    //   to the input Pass 1 output.
+  },
+  "change_log": [                                                          // REQUIRED — minimum one entry; every field modified must be declared here
+    {
+      "field": "<JSONPath-style reference, e.g. 'rules_fired' or 'risk_score.total' or 'examiner_notes_full.rule_application_and_risk_pattern'>",  // REQUIRED
+      "before": "<prior value — for prose >200 chars, truncate with ' ... [truncated]' suffix; for structured values, include in full>",            // REQUIRED
+      "after":  "<new value — same truncation rule as 'before'>",                                                                                   // REQUIRED
+      "reason": "<1-2 sentences tying the change to a specific addressed violation>"                                                                // REQUIRED
+    }
+    // ... additional entries as needed
+  ],
+  "regeneration_scope_applied": "structured_decision_only",                // OPTIONAL — enum: "structured_decision_only" | "examiner_notes_only" | "full_regeneration"
+  "addressed_violations": [                                                // OPTIONAL — record of which Pass 2 violations were addressed
+    {
+      "check_id": "<from Pass 2 checks array>",                            // REQUIRED within entry
+      "check_type": "<same enum as Pass 2 check_type>",                    // REQUIRED within entry
+      "severity_addressed": "material",                                    // REQUIRED within entry — enum: "critical" | "material"
+      "remedy_summary": "<1-2 sentences on what was changed to address this violation>"  // REQUIRED within entry
+    }
+    // ... additional entries as needed
+  ],
+  "correction_summary": "<exactly 2 sentences for the UI 'correction applied' banner>",  // OPTIONAL — compliance-finding register
+  "preservation_attestation": {                                            // OPTIONAL
+    "preserved_fields_explicitly_unchanged": ["<field paths from Pass 2's preservation_note that you confirmed unchanged>"],  // REQUIRED within object
+    "preservation_method_note": "<brief description of how preservation was enforced>"                                         // REQUIRED within object
+  }
+}
+```
+
+The template above uses `//` line comments for documentation. The first character of your response must be `{`. The last character must be `}`. Your actual output must be valid JSON — no `//` comments in your response, no preamble, no explanation, no markdown fencing around the JSON.

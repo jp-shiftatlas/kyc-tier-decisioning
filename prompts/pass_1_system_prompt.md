@@ -121,6 +121,60 @@ Example (Persona B): "Recommended for Enhanced Due Diligence under ES-03 (PEP cl
 
 [CUSTOMER PROFILE JSON INSERTED HERE]
 
+<!-- BATCH 11A — Phase 2 template addition (May 17, 2026); see docs/design-decisions.md "Pass 1/2/3 prompt template embedding" entry -->
+
 # Output Format
 
 Return a single JSON object conforming to the schema. The `examiner_notes_full` and `summary_finding` fields contain the prose layers. No preamble, no explanation outside the JSON. The JSON is consumed directly by the next pass and the rendering layer.
+
+Your output must conform exactly to the following JSON template. Return ONLY the fields shown. Do NOT add fields not in this template, even if they seem useful — additional fields are rejected by the schema validator. Field names must match exactly (case-sensitive).
+
+```json
+{
+  "decision": {                                       // REQUIRED — structured decision object; do NOT flatten its six fields to the document root
+    "recommended_tier": "Standard",                   // REQUIRED — enum: "SDD" | "Standard" | "EDD" | "Decline"
+    "decision_basis": "score_based",                  // REQUIRED — enum: "hard_rule" | "score_based" | "hybrid"
+    "decisive_rule_ids": ["TE-02"],                   // REQUIRED — array of canonical rule_ids (e.g. "TE-02", "ES-03", "DC-07")
+    "senior_approval_required": false,                // REQUIRED — true ONLY when a PEP hard rule fires (ES-01 / ES-02 / ES-03); not "senior_management_approval_required"
+    "onboarding_hold": false,                         // REQUIRED — true ONLY when ES-05 (sanctions pending) fires; not "hold_onboarding"
+    "hold_reason": null                               // REQUIRED — string explanation when onboarding_hold is true; null otherwise
+  },
+  "risk_score": {                                     // REQUIRED
+    "total": 0,                                       // REQUIRED — integer; sum of weights of all fired rules
+    "category_breakdown": {                           // REQUIRED — all three keys present even when value is 0
+      "tier_eligibility": 0,
+      "escalation_triggers": 0,
+      "documentation_process": 0
+    },
+    "score_band": "0-10"                              // OPTIONAL — enum: "0-10" | "11-30" | "31+"; include when score is computed
+  },
+  "rules_fired": [                                    // REQUIRED — every rule that fired; DC-07 must always be present (AI-generated recommendation)
+    {
+      "rule_id": "TE-02",                             // REQUIRED — canonical rule_id present in the ruleset
+      "category": "tier_eligibility",                 // REQUIRED — enum: "tier_eligibility" | "escalation_triggers" | "documentation_process"
+      "weight": 0,                                    // REQUIRED — integer weight per the ruleset
+      "trigger_evidence": "<one sentence citing the specific profile evidence that satisfies this rule's trigger>"  // REQUIRED
+    }
+    // ... additional entries as needed
+  ],
+  "examiner_notes_full": {                            // REQUIRED — six-key object with prose values; do NOT emit as a single prose string
+    "decision_summary": "<prose paragraph — tier, decisive rule(s), senior approval, score with note>",
+    "profile_analysis": "<prose paragraph — neutral description of the customer's factors, no conclusions>",
+    "rule_application_and_risk_pattern": "<prose paragraph(s) — which rules fired and why; name any compounding pattern explicitly>",
+    "considered_alternatives": "<prose paragraph — alternative tiers evaluated and why rejected>",
+    "recommended_edd_procedures": null,               // string with concrete procedures (with inline (1)(2)(3) numbering) when tier is EDD or Decline; null otherwise
+    "audit_trail": "<prose paragraph — process documentation per NPC Advisory 2024-04, including AI-generated provenance and human-review requirement>"
+  },
+  "summary_finding": "<exactly two sentences — sentence 1 names the decision and decisive rule; sentence 2 names the compounding pattern or secondary consideration>",  // REQUIRED
+  "recommended_edd_procedures": [                     // OPTIONAL — top-level structured EDD procedures; omit the entire array when tier is SDD or Standard
+    {
+      "procedure_id": 1,                              // REQUIRED within entry — positive integer
+      "description": "<concrete procedural requirement>",
+      "regulatory_basis": "<rule_id or regulatory citation>"
+    }
+    // ... additional entries as needed
+  ]
+}
+```
+
+The template above uses `//` line comments for documentation. The first character of your response must be `{`. The last character must be `}`. Your actual output must be valid JSON — no `//` comments in your response, no preamble, no explanation, no markdown fencing around the JSON.

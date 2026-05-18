@@ -142,4 +142,158 @@ describe('Prompt injection invariants — PRIMARY_PROMPT.md §4.10 (Decision 35)
       }
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Invariant D: JSON output template present per pass (Batch 11A Phase 2)
+  // Failure mode caught: future prompt edits delete the JSON template block or
+  // remove key required field names, re-opening the live-API schema mismatch
+  // diagnosed in Batch 11 rehearsal. The required field names are derived from
+  // the schema files (Pass1OutputSchema / Pass2OutputSchema / Pass3OutputSchema)
+  // and hardcoded here so the regression guard binds to the schema source of
+  // truth rather than re-parsing the schema at runtime.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('D — JSON output template embedded per pass', () => {
+    const TEMPLATE_FENCE = '```json';
+    const CONSTRAIN_INSTRUCTION = 'Do NOT add fields not in this template';
+
+    // Extract the content of the first ```json fenced block from a stripped
+    // prompt. Returns the empty string when no block is found; callers assert
+    // a positive length first.
+    function extractJsonTemplate(stripped: string): string {
+      const start = stripped.indexOf(TEMPLATE_FENCE);
+      if (start === -1) return '';
+      const blockStart = start + TEMPLATE_FENCE.length;
+      const end = stripped.indexOf('```', blockStart);
+      if (end === -1) return '';
+      return stripped.slice(blockStart, end);
+    }
+
+    it('Pass 1 prompt embeds a JSON template with every required Pass1OutputSchema field', () => {
+      // Source of truth: lib/schemas/pass1.ts — Pass1OutputSchema required fields
+      // plus the six examiner_notes_full sub-keys and the six decision sub-keys.
+      const block = extractJsonTemplate(p1);
+      expect(block.length).toBeGreaterThan(0);
+      // Top-level required fields
+      for (const field of [
+        '"decision"',
+        '"risk_score"',
+        '"rules_fired"',
+        '"examiner_notes_full"',
+        '"summary_finding"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // decision sub-keys (the structural mismatch from Batch 11 rehearsal:
+      // model was emitting these flat at the root)
+      for (const field of [
+        '"recommended_tier"',
+        '"decision_basis"',
+        '"decisive_rule_ids"',
+        '"senior_approval_required"',
+        '"onboarding_hold"',
+        '"hold_reason"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // examiner_notes_full sub-keys (the other structural mismatch:
+      // model was emitting examiner_notes_full as a single prose string)
+      for (const field of [
+        '"decision_summary"',
+        '"profile_analysis"',
+        '"rule_application_and_risk_pattern"',
+        '"considered_alternatives"',
+        '"recommended_edd_procedures"',
+        '"audit_trail"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // risk_score sub-keys
+      for (const field of [
+        '"total"',
+        '"category_breakdown"',
+        '"tier_eligibility"',
+        '"escalation_triggers"',
+        '"documentation_process"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // Path Q (constrain, don't expand) — schema-conformance instruction present
+      expect(p1).toContain(CONSTRAIN_INSTRUCTION);
+    });
+
+    it('Pass 2 prompt embeds a JSON template with every required Pass2OutputSchema field', () => {
+      // Source of truth: lib/schemas/pass2.ts — Pass2OutputSchema required fields.
+      const block = extractJsonTemplate(p2);
+      expect(block.length).toBeGreaterThan(0);
+      for (const field of [
+        '"target_check_ids"',
+        '"regeneration_scope"',
+        '"correction_required"',
+        '"audit_summary"',
+        '"overall_status"',
+        '"checks"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // AuditCheckSchema sub-keys (required-per-entry plus the three
+      // numeric_threshold_verification fields the audit discipline depends on)
+      for (const field of [
+        '"check_type"',
+        '"status"',
+        '"severity"',
+        '"evidence_note"',
+        '"profile_value"',
+        '"rule_threshold"',
+        '"comparison_result"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      expect(p2).toContain(CONSTRAIN_INSTRUCTION);
+    });
+
+    it('Pass 3 prompt embeds a JSON template matching the FLAT Pass3OutputSchema shape', () => {
+      // Source of truth: lib/schemas/pass3.ts — Pass3OutputSchema required fields.
+      // Per Findings 4/5 and Batch 11A directive: schema is FLAT (correction_against_audit_id,
+      // correction_attempt_number, corrected_pass_1_output, change_log all at root) —
+      // NOT nested under a correction_metadata envelope.
+      const block = extractJsonTemplate(p3);
+      expect(block.length).toBeGreaterThan(0);
+      for (const field of [
+        '"correction_against_audit_id"',
+        '"correction_attempt_number"',
+        '"corrected_pass_1_output"',
+        '"change_log"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // ChangeLogEntrySchema fields — strictObject, must use the schema's exact
+      // field names (field/before/after/reason, NOT field_path/rationale/cascade_basis
+      // which are the prompt-vs-schema-gap names from the deferred Resolution(Batch 11)
+      // nested-envelope tightening).
+      for (const field of [
+        '"field"',
+        '"before"',
+        '"after"',
+        '"reason"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // Optional fields — present in template even though optional, since their
+      // shape is non-obvious.
+      for (const field of [
+        '"regeneration_scope_applied"',
+        '"addressed_violations"',
+        '"correction_summary"',
+        '"preservation_attestation"',
+      ]) {
+        expect(block).toContain(field);
+      }
+      // Flat-shape negative assertion: the template must NOT introduce
+      // correction_metadata or metadata envelopes (the prior nested shape
+      // that the schema rejects).
+      expect(block).not.toContain('"correction_metadata"');
+      expect(p3).toContain(CONSTRAIN_INSTRUCTION);
+    });
+  });
 });

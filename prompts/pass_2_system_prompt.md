@@ -187,6 +187,55 @@ For `numeric_threshold_verification` checks, the `evidence_note` is brief (1-2 s
 
 [CUSTOMER PROFILE JSON INSERTED HERE]
 
+<!-- BATCH 11A — Phase 2 template addition (May 17, 2026); see docs/design-decisions.md "Pass 1/2/3 prompt template embedding" entry -->
+
 # Output Format
 
 Return a single JSON object conforming to the Pass 2 schema. No preamble, no explanation outside the JSON. Every required field must be present. The JSON is consumed directly by the rendering layer and (if correction_required) by Pass 3.
+
+Your output must conform exactly to the following JSON template. Return ONLY the fields shown. Do NOT add fields not in this template, even if they seem useful — additional fields are rejected by the schema validator. Field names must match exactly (case-sensitive). Per-check `status` is LOWERCASE; top-level `overall_status` is UPPERCASE.
+
+```json
+{
+  "target_check_ids": [],                                       // REQUIRED — array of check_ids targeted for Pass 3 regeneration; empty array on clean audit
+  "regeneration_scope": "none",                                 // REQUIRED — enum: "none" | "full" | "targeted"; default "none" on clean audit
+  "correction_required": false,                                 // REQUIRED — true iff at least one critical or material violation present
+  "audit_summary": "<1-3 paragraph audit conclusion narrative>",// REQUIRED — finding-register prose; no AI self-reference; no hedging
+  "overall_status": "PASS",                                     // REQUIRED — UPPERCASE enum: "PASS" | "PASS_WITH_QUALITY_FLAGS" | "FAIL"
+  "checks": [                                                   // REQUIRED — every audit check (PASS checks included; clean audits show work too)
+    {
+      "rule_id": "TE-02",                                       // OPTIONAL — canonical rule_id when check applies to a specific rule (TE-NN / ES-NN / DC-NN)
+      "check_type": "rule_firing",                              // REQUIRED — enum: "hard_rule_floor" | "rule_firing" | "numeric_threshold_verification" | "score_arithmetic" | "score_band_mapping" | "decision_basis_consistency" | "pattern_substance" | "dc07_documentation" | "register_compliance" | "consistency"
+      "status": "pass",                                         // REQUIRED — LOWERCASE enum: "pass" | "fail" | "quality"
+      "severity": null,                                         // REQUIRED — enum: "critical" | "material" | "quality" (or null when status is "pass")
+      "evidence_note": "<1-3 sentences contextualizing the check>", // OPTIONAL but expected on every check
+      "regulatory_citation": null                               // OPTIONAL — citation string (e.g. "MORB §923") or null
+      // For check_type "numeric_threshold_verification" ONLY, ALSO populate these three fields with the explicit arithmetic:
+      //   "profile_value": "PHP 80,000/mo",
+      //   "rule_threshold": "<PHP 50K/mo",
+      //   "comparison_result": "80,000 is not less than 50,000"
+    }
+    // ... additional check entries as needed
+  ],
+  "severity_counts": {                                          // OPTIONAL — when present, ALL three keys required
+    "critical": 0,
+    "material": 0,
+    "quality": 0
+  },
+  "metadata": {                                                 // OPTIONAL — audit metadata; absorbs ruleset_version, audit_generated_at, independence_attestation, etc.
+    "ruleset_version": "v1",
+    "audit_generated_at": "<ISO8601 timestamp>",
+    "independence_attestation": {
+      "independent_assessment_completed": true,
+      "method_note": "<brief description of audit procedure followed in Step 1>"
+    }
+  },
+  "pass_3_targeting": {                                         // OPTIONAL — populate ONLY when correction_required is true
+    "target_check_ids": ["<check_id_1>"],                       // mirrors top-level target_check_ids
+    "regeneration_scope": "structured_decision_only",           // enum: "structured_decision_only" | "examiner_notes_only" | "full_regeneration"
+    "preservation_note": "<explicit statement of what Pass 3 must NOT change — typically the correctly-fired rules, correct portions of the score, and any examiner notes sections that passed register checks>"
+  }
+}
+```
+
+The template above uses `//` line comments for documentation. The first character of your response must be `{`. The last character must be `}`. Your actual output must be valid JSON — no `//` comments in your response, no preamble, no explanation, no markdown fencing around the JSON.

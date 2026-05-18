@@ -6,6 +6,77 @@ Entries are ordered most-recent-first within each section.
 
 ---
 
+## Pass 1/2/3 prompt template embedding (Batch 11A Phase 2, 2026-05-17)
+
+Batch 11 rehearsal of the deployed Vercel preview against the live Anthropic API on `claude-sonnet-4-6` surfaced a reproducible Pass 1 schema mismatch: `Pass1OutputSchema.parse()` failed with `decision: undefined` and `examiner_notes_full: string` on every custom-input form submission, regardless of profile. The four locked personas continued to PASS clean because the locked-persona playback path is JSON-replay against `data/personas.json` content and does not exercise the live API.
+
+### The empirical Phase 1 finding (raw response vs schema)
+
+Phase 1 diagnostic capture (`/tmp/diagnose_pass1.mjs`, executed against the live API by JP in a parallel session) produced two structural mismatches plus several spontaneous-field additions:
+
+1. **Flat decision fields.** The model emitted `recommended_tier`, `decision_basis`, `decisive_rule_ids`, `senior_approval_required`, `onboarding_hold`, and `hold_reason` at the document root rather than nested under a `decision` object. `Pass1OutputSchema` is `z.looseObject`, so the flat fields were silently absorbed without producing additional issues, but the required `decision` key was absent and tripped the strictObject check inside `DecisionSchema`.
+2. **`examiner_notes_full` as a prose string.** The model emitted the examiner notes as one ~500-word prose blob rather than a six-key object with `decision_summary` / `profile_analysis` / `rule_application_and_risk_pattern` / `considered_alternatives` / `recommended_edd_procedures` / `audit_trail` sub-fields. The UI renderer (`components/decisioning/ExaminerNotes.tsx`) iterates those six keys directly, so a string-shaped value breaks the entire panel even before the schema check.
+3. **Field-name variants.** The model emitted `senior_management_approval_required` (instead of `senior_approval_required`) and `hold_onboarding` (instead of `onboarding_hold`) at the flat decision-fields level. These would have continued silently absorbed by `z.looseObject` if the wrapping `decision` key had been present at all.
+4. **Spontaneous metadata.** The model also emitted `pass`, `customer_reference`, `timestamp_utc`, `rules_considered_not_fired` (with renamed shape), `compounding_pattern_*` fields (`compounding_pattern_present`, `compounding_factors`, `compounding_interpretation`), and `score_vs_decision_note` — all outside the schema's declared fields.
+
+Root cause: the Pass 1 system prompt described the output shape in prose ("Layer 1 — Structured Decision (JSON)" / "Layer 2 — Examiner Notes (Prose)" / "Layer 3 — Summary Finding") but never embedded a literal JSON template the model could conform to. "Conform exactly to the schema provided" pointed at a schema that wasn't actually inlined. The locked-persona JSONs were manually curated from prose-then-JSON Claude chat sessions during persona generation (`08_PERSONA_OUTPUTS.md` provenance), which masked this underspecification during Batches 1–10 — every test of the Pass 1 contract before Batch 11 used the curated JSON, never live model output.
+
+### Path Q rationale: constrain, don't expand
+
+Two directions were considered for the v1 fix:
+
+- **Path P (expand schema).** Adopt the spontaneous fields the model actually produced — add `compounding_pattern_*` to the schema, accept `score_vs_decision_note`, etc. This would have aligned schema to model behavior and unlocked the model's natural emit pattern.
+- **Path Q (constrain prompt).** Tighten the prompt to instruct the model to emit ONLY the schema's declared fields, with the exact field names and structure. Schema stays as v1 source of truth; spontaneous fields are excluded.
+
+Path Q chosen because (i) the locked personas are the canonical v1 contract for the UI rendering layer and downstream Pass 2 / Pass 3 inputs — adopting spontaneous fields would invalidate the persona lockfile or require dual-shape handling everywhere; (ii) the spontaneous fields are useful but unproven — adopting them in v1 without dedicated UI / schema modeling would create a "loosely defined" surface that downstream consumers cannot rely on; (iii) the existing 671-test surface is built around the strict-shape Pass 1 contract — expanding schema would require touching the entire test surface, not just the prompts.
+
+### Fields the model produced but we explicitly did NOT adopt (deferred to v1.1)
+
+These are reasonable additions that the model surfaces spontaneously. Preserving the rationale here for future v1.1 consideration:
+
+- **`compounding_pattern_present` (boolean) + `compounding_pattern_factors` (array of contributing-factor objects) + `compounding_pattern_interpretation` (prose explanation).** The Pass 1 prompt has substantial "Risk Pattern Analysis — Critical Instruction" guidance that the model is correctly applying. Without these fields in the schema, the analysis collapses into the `rule_application_and_risk_pattern` prose paragraph (which is correct rendering behavior for v1 but loses the structured signal). v1.1 could add a top-level `risk_pattern_analysis: { compounding_pattern_present, contributing_factors[], pattern_interpretation }` object and have the UI surface it as a dedicated panel below the rules-fired list.
+- **`score_vs_decision_note` (prose, inside `risk_score`).** The model uses this to flag cases where the score-based tier and the operative tier diverge (e.g., Maria: score 0 → SDD-eligible band, but TE-02 volume-band governs Standard). The locked persona JSON for Maria already carries this field; the schema's `risk_score: z.looseObject` absorbs it. v1.1 could promote it to a declared field with a typed annotation for the UI's reasoning-transparency panel.
+- **`rules_considered_not_fired` (array, with shape `{rule_id, fired:false, exclusion_reason}`).** The schema declares this as `considered_rules` with field `confidence_basis`. The model's spontaneous shape is more semantically accurate (a rule was considered and explicitly excluded; `exclusion_reason` reads better than `confidence_basis`). v1.1 should rename `considered_rules → rules_considered_not_fired` and `confidence_basis → exclusion_reason` for the canonical shape, OR add the renamed shape as a sibling and deprecate the old one.
+- **`pass`, `customer_reference`, `timestamp_utc` (top-level metadata).** Useful for audit-trail wiring; v1 routes the audit-reference-id through orchestration context and timestamps responses at the route handler. v1.1 could add a top-level `metadata: { pass, customer_reference, timestamp_utc, ruleset_version, model_id }` object — the locked persona JSON for Maria has a `metadata` block carrying these.
+
+The v1 prompts now explicitly tell the model to OMIT these fields. v1.1 work will revisit which of them belong in the schema and add them under controlled types, with corresponding UI surfaces.
+
+### Pass 2 and Pass 3 — preventive scope (Amendment 4)
+
+The same template-embedding pattern was applied to Pass 2 and Pass 3 prompts even though the live-API failure surfaced only on Pass 1. Reason: the locked personas for all three passes share the same provenance (manual curation from prose-then-JSON Claude chat sessions), so all three carry the same latent prompt/schema gap. Pass 2 and Pass 3 would have failed on their next live-API tests for the same reasons. Fixing all three in one dispatch prevents a cascade of follow-up batches.
+
+### Pass 3 specifically — schema-vs-prompt nested-envelope deferral
+
+The Pass 3 prompt previously had a `# Output Schema` section describing a NESTED envelope (`{ corrected_pass_1_output, correction_metadata: { change_log, addressed_violations, ... }, metadata: { ... } }`) while `Pass3OutputSchema` is FLAT (`{ correction_against_audit_id, correction_attempt_number, corrected_pass_1_output, change_log }` at root). This is the gap documented in Findings 4/5 above. The Batch 11A Phase 2 template embedding uses the FLAT shape — matching what the schema currently accepts — and explicitly removes the prior nested-envelope `# Output Schema` section. The schema-vs-prompt tightening question (rewrite `Pass3OutputSchema` to nested, or keep flat as canonical?) is deferred to a separate dispatch per JP's Phase 2 directive: "the schema-tightening to nested envelope per the build plan's deferred Resolution(Batch 11) is out of scope for this dispatch — defer."
+
+Concurrently with the FLAT-shape template, three secondary edits in the Pass 3 prompt reconcile prior prose with the schema's field names:
+
+- The "every entry must populate `cascade_basis`" instruction was softened to "Apply this cascade discipline conceptually when deciding which fields belong in your `change_log`" — the schema has no `cascade_basis` field; cascade rationale now goes in the entry's `reason` field.
+- The "Cascade basis" instruction in the `full_regeneration` scope was reworded similarly.
+- The Register Requirements section's reference to `change_log[].rationale` was corrected to `change_log[].reason` to match `ChangeLogEntrySchema`.
+
+### Regression guards
+
+Three invariants tests added to `lib/prompts/invariants.test.ts` (invariant D — JSON output template embedded per pass), one per pass. Each asserts (i) a fenced ```json block is present in the stripped prompt, (ii) every schema-required top-level field name appears literally in the template, (iii) the Path Q "Do NOT add fields not in this template" instruction is present. The Pass 3 invariant additionally asserts the template does NOT contain `correction_metadata` — the nested-envelope shape that the schema rejects.
+
+Nine live-API smoke tests added at `tests/smoke/pass{1,2,3}.live.smoke.test.ts` (three per pass), gated on `INTEGRATION=real` per existing smoke-test convention. The Pass 1 tests exercise three real profiles (clean baseline, foreign PEP self, OFW + minor adverse media). The Pass 2 tests feed locked-persona Pass 1 outputs (Maria / Carlos / persona_c) as the audit-input. The Pass 3 tests pair locked-persona Pass 1 with synthetic Pass 2 fixtures that drive each of the three correction scopes (`structured_decision_only`, `examiner_notes_only`, `full_regeneration`). The synthetic Pass 2 fixtures are plausible but non-load-bearing — only response-shape conformance against `Pass3OutputSchema` is asserted.
+
+### Locked-persona provenance note (why this wasn't caught earlier)
+
+The four locked persona JSONs in `data/personas.json` (Maria / Carlos / persona_c / persona_d) were generated by manual curation from prose-then-JSON Claude chat sessions during persona generation (per the `08_PERSONA_OUTPUTS.md` provenance trail), NOT by live API calls against the v1 prompts. The persona generation process was: prose-only Claude session produces the analysis narrative for the persona; a separate JSON-shaping step converts the narrative to the canonical schema shape. The resulting JSON was schema-valid by construction because the JSON-shaping step targeted the schema, not the prompt.
+
+This curation flow was efficient for v1 demo readiness — locked personas exercise the full UI / state-machine / orchestration path without burning live API tokens during development — but it concealed the prompt/schema gap. The first live API call against the v1 prompts is, by design, the Batch 11 deployed-preview rehearsal; that rehearsal exposed the gap. Future personas should be generated by live API calls against the v1 prompts (then locked) so the prompt-vs-schema integrity is verified at persona creation time, not Batch 11.
+
+### Amendment 5 dropped (defensive prose-stripping unnecessary)
+
+The Phase 1 raw response capture showed `stop_reason=end_turn` with clean JSON-only output and no prose preamble. The existing "No preamble, no explanation outside the JSON" instruction at the prompt level is empirically working. The proposed Amendment 5 (defensive prose-stripping in the route handler before `JSON.parse()`) was dropped — the `parseModelJson` helper at `lib/anthropic/client.ts:34` already handles the markdown-fence edge case (`stripped.trim().replace(/^```(?:json)?...$/...)`) which is the only stripping the live responses need.
+
+### Ratification ledger G6 (post-launch disclosure tightening)
+
+The route handler at `app/api/decisioning/route.ts` currently returns Zod issue detail in the body of 400 responses (`{ pass, errorType, zodIssues, message, retryable }`). This is an information-disclosure smell for production — internal schema field paths and expected-type strings are visible to any client. Acceptable for v1 methodology demo (the response body is what enabled the Phase 1 diagnostic without an `ANTHROPIC_API_KEY` in the diagnosing session's subprocess env), but should be tightened post-launch: return a generic 400 to the client; log the zodIssues to Vercel function logs (or an external observability sink) for operator-side debugging. Added to ratification ledger Part G as G6.
+
+---
+
 ## Schema vs locked-persona reality (Batch 1 findings, Checkpoint 1, 2026-05-12)
 
 Six findings surfaced during Batch 1 from real persona-JSON inspection. JP approved the resolutions at Checkpoint 1. Each entry below captures what was resolved, why, and what downstream tasks should know.
