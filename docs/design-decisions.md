@@ -77,6 +77,23 @@ The route handler at `app/api/decisioning/route.ts` currently returns Zod issue 
 
 ---
 
+## Decision ratifications (Batch 11A Dispatch 1, 2026-05-19)
+
+Decisions 36–45 are captured in the project-knowledge build plan; only Decisions 46 and 47 land in this repo file as part of Batch 11A Dispatch 1. See the project-knowledge `04_BUILD_PLAN.md` Batch 11 Ratification Ledger for the broader numbered sequence.
+
+### Decision 46 — Orchestration & State-Machine Behavior (Batch 11A, 2026-05-19)
+
+- **46a. Inter-pass timing — Option A (instantaneous resolution).** Persona playback resolves passes instantaneously rather than introducing synthetic delays. Persona-mode is a documentary of a prior decision, not a re-enactment; synthetic delays would inject consumer-app pacing into an institutional-register surface.
+- **46b. Mid-flight persona-switch behavior.** Switching personas mid-flight resets state cleanly via `useEffect [mode]` explicit `reset()` on the previous machine. Future maintainers should not interpret the reset as a bug.
+- **46c. Terminal-state headline behavior.** `passHeadlineMap` returns `null` at terminal state; consumers render no headline. Do not substitute a fallback string.
+- **46d. "Pass 2 — Re-audit" microcopy.** Short form canonical over "Pass 2 — Audit after correction" or longer alternatives.
+- **46e. 41-sublabel notation.** `41a–e` is canonical; do not introduce `41 S1/S2/S3/Path X` alternatives. Aligns with how `36a–h` is used elsewhere in this doc.
+- **46f. Network-failure → `upstream_timeout` mapping.** Network failures are synthesized into a canonical `upstream_timeout` error shape. Future debug sessions should know that an `upstream_timeout` in logs may be a real timeout or a synthesized one from a lower-layer network failure.
+- **46g. Two-IDs-decoupled (audit_id semantics).** Server-side `audit_id` (Pass 3 orchestration correlation key) and client-side analyst-receipt identifier (generated at click time in AnalystControlPanel) are decoupled by design. They serve different stakeholders and need not correlate. AnalystControlPanel generates its own audit reference at click time from an `auditRefSource` seed supplied by orchestration; orchestration does not propagate a pre-generated ID downward.
+- **46h. `'failed'` state + fourth silence category.** The `'failed'` state in the state machine is a project addition over the original spec. Its addition surfaced a fourth spec-silence category — `spec-silence-because-happy-path-assumed` — joining the three existing categories (silence-as-discipline, silence-because-standard-pattern-exists, silence-as-gap). The four-category framework is promoted from build-findings-log to project-knowledge.
+
+---
+
 ## Schema vs locked-persona reality (Batch 1 findings, Checkpoint 1, 2026-05-12)
 
 Six findings surfaced during Batch 1 from real persona-JSON inspection. JP approved the resolutions at Checkpoint 1. Each entry below captures what was resolved, why, and what downstream tasks should know.
