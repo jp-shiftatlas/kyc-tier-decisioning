@@ -21,8 +21,17 @@
  *   - font-mono                           → JetBrains Mono rendering on rule-ID
  *   - text-accent-primary                 → accent color application
  *   - border-border-default               → border color emission
+ *
+ * Production exclusion per Batch 11A Dispatch 1 Part E1: the route 404s
+ * in production builds. Next.js inlines `process.env.NODE_ENV` at build
+ * time, so the conditional resolves to `true` in production and the page
+ * body becomes unreachable; Playwright runs against `next dev` so the
+ * e2e exercise path is unaffected.
  */
+import { notFound } from 'next/navigation';
+
 export default function FontVerificationPage() {
+  if (process.env.NODE_ENV === 'production') notFound();
   return (
     <main
       className="bg-surface-base text-text-primary px-12 py-16"
