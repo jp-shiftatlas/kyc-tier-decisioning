@@ -92,6 +92,18 @@ Decisions 36–45 are captured in the project-knowledge build plan; only Decisio
 - **46g. Two-IDs-decoupled (audit_id semantics).** Server-side `audit_id` (Pass 3 orchestration correlation key) and client-side analyst-receipt identifier (generated at click time in AnalystControlPanel) are decoupled by design. They serve different stakeholders and need not correlate. AnalystControlPanel generates its own audit reference at click time from an `auditRefSource` seed supplied by orchestration; orchestration does not propagate a pre-generated ID downward.
 - **46h. `'failed'` state + fourth silence category.** The `'failed'` state in the state machine is a project addition over the original spec. Its addition surfaced a fourth spec-silence category — `spec-silence-because-happy-path-assumed` — joining the three existing categories (silence-as-discipline, silence-because-standard-pattern-exists, silence-as-gap). The four-category framework is promoted from build-findings-log to project-knowledge.
 
+### Decision 47 — Page-Level UX & Microcopy Ratifications (Batch 11A, 2026-05-19)
+
+- **47a. PageHeader tagline.** Canonical: "Three-pass reasoning pipeline — Shift Atlas consulting methodology demonstration." Load-bearing for the consulting-vs-product framing.
+- **47b. Header: scrollable, not sticky.** Institutional-register convention. Regression-guard via absence of `sticky` / `fixed` classes in PageHeader.
+- **47c. Viewport gutter behavior (1024–1280px).** `max-w-[1180px] mx-auto + xl:px-0` pattern; 50px gutter at the 1280px design target. Specific implementation of Decision 39's three-tier viewport hierarchy.
+- **47d. AnalystControlPanel mid-flight mounting from `pass_2` onward.** Render-timing decision affecting demo pacing.
+- **47e. `pass1` prop dual-mode.** Mid-flight: reads original Pass 1. Terminal: reads corrected Pass 1 if Pass 3 fired, else original. Preserves Decision 36h sub-case (a) "acted on uncorrected output" semantics.
+- **47f. `'idle'` state prompt.** Canonical: "Select a persona or fill the custom case form to begin."
+- **47g. Cap-reached layout — Option 1 (four stacked sections).** When L1/L3 cost protection triggers, the page renders four labeled sections in order: "Original recommendation" / "Original audit" / "Correction attempted" / "Re-audit findings." Load-bearing for the credibility narrative (the demo's failure mode is intentional and named).
+- **47h. Live-mode `'Custom case'` microcopy.** Mode-disclosure label distinguishing custom submissions from persona playback. Substitutes for `customer_reference` in surfaces where mode disclosure outweighs identifier disclosure.
+- **47i. CustomInputForm canonically single-column at all viewports.** Closes the ninth-sub-class methodology drift (spec-implies-unimplemented-baseline). Decision 39's "single-column at functional floor" framing is a no-op for this form; the form is canonically single-column. Do not introduce a two-column variant without revisiting this decision.
+
 ---
 
 ## Schema vs locked-persona reality (Batch 1 findings, Checkpoint 1, 2026-05-12)
