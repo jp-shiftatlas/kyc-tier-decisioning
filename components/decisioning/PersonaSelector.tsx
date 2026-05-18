@@ -123,6 +123,7 @@ export function PersonaSelector({
               className={cx(
                 'transition-colors',
                 isActive
+                  // Ledger D7: first use of `ring-*` utility for active-state; if extended elsewhere, surface as canonical.
                   ? 'ring-2 ring-accent-primary'
                   : 'hover:bg-surface-recessed',
               )}

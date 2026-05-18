@@ -112,6 +112,7 @@ const LIVE_MODE_LABEL = 'Custom case';
 
 // In-flight indicator for 'pass_3' state per Finding F refinement. Minimal
 // text indicator in --text-tertiary; no animation. Batch 11 ratification.
+// Ledger D2: minimal institutional-register progress signal; tertiary text color per corpus.
 const PASS_3_IN_FLIGHT_LABEL = 'Correcting…';
 
 // Pass-headline derivation for 'failed' state per Finding H. Reads
@@ -184,6 +185,7 @@ export function DecisioningOrchestrator() {
   // leaving 'live' to clear terminal state; startLiveRun handles reset on
   // entry to 'live'. Avoid resetting live machine on entry — startLiveRun
   // will reset() then startPass1() and the duplicate reset would race.
+  // Ledger D5: explicit reset on mode change; covered by tests, do not remove.
   useEffect(() => {
     if (mode !== 'live') liveMachine.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -507,6 +509,7 @@ export function DecisioningOrchestrator() {
       }
 
       case 'failed': {
+        // Ledger D3: failed-state surface follows corpus §5.3 violation treatment.
         if (!error) return null;
         // ExaminerNotes mounts at failed state with ORIGINAL Pass 1 content
         // per Iteration 1 directive ("Mid-flight content: original Pass 1 ...

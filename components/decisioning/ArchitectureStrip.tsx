@@ -2,6 +2,9 @@
 // Static positioning artifact per Decision 42 / visual_system.md §5.4 /
 // PRIMARY_PROMPT.md §6.4.
 //
+// Ledger D6: ArchitectureStrip lives under `decisioning/` per soft-discipline;
+// `chrome/` houses page-level scaffolding only.
+//
 // Five-box horizontal strip rendering the augmentation context:
 //   Identity Verification › AML Screening › [Reasoning Layer] › Case Management
 //   › Core Banking

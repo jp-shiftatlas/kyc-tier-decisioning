@@ -68,6 +68,7 @@ import { AuditPanel } from './AuditPanel';
 
 // Decision 41a 80–120ms range; 100ms midpoint. Designer-tunable; Batch 11
 // visual-calibration item.
+// Ledger D1: 100ms cadence is midpoint within 80–120ms spec range.
 const DEFAULT_CADENCE_MS = 100;
 
 interface AuditPanelTickerProps {
