@@ -219,6 +219,7 @@ Near the footer but not in it. After the analyst control panel, before the citat
 ### 5.1 Recommendation card
 
 - Tier badge: large, slate-blue accent background (`--accent-subtle-bg`) with `--accent-deep` text, mono font for the tier label
+  - Padding: `px-3 py-1.5` (between Chip's `px-2 py-0.5` and Card's `p-6`). Text size: `text-lg` (18px) — visibly larger than chip/button `text-sm` and field-label `text-base`. The `text-xl` size is reserved for the risk score numeric.
 - Risk score: tabular-figure `--text-xl`, with category breakdown chips below
 - "Why this tier" expandable: chevron disclosure, expanded content uses serif body type for the rationale prose
 - Suggested EDD requirements: bulleted list using `--font-sans`, not serif (these are operational items, not memo prose)
@@ -357,6 +358,7 @@ Field structure rendered as a `--surface-elevated` card with 24px internal paddi
 - Submit disabled until non-whitespace content entered
 - On submit: original AI recommendation renders in its **full original visual form** (same typography, field layout, risk-score treatment) with a **"Superseded by analyst override"** header strip in `--text-tertiary`, alongside the analyst's documented basis. Treatment mirrors the Pass 3 change-log's before/after disclosure
 - Escape key, click on backdrop, and explicit Cancel button all dismiss
+- When open, the modal locks body scroll via `document.body.style.overflow = 'hidden'`; restored on close. This prevents background content from scrolling behind the open modal.
 
 **Post-action state:**
 - After any of the three actions, all three buttons disable (`opacity: 0.5`, `cursor: not-allowed`)
@@ -522,3 +524,20 @@ The visual specifications here align with the architectural decisions synthesize
 - **§7.6 (Mobile floor)** — Decision 39 three-tier hierarchy
 
 When PRIMARY_PROMPT.md and this file appear to conflict, PRIMARY_PROMPT.md wins on architectural questions; this file wins on visual treatment questions. If the conflict is genuine (not just a difference in framing), surface it to JP before resolving.
+
+## 8. Accessibility
+
+### Focus treatment (canonical)
+
+All focusable interactive primitives use:
+
+```
+focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary
+```
+
+- Keyboard-only via `focus-visible` (not `focus`)
+- 2px outline width
+- 2px outline offset
+- Color: `--accent-primary`
+
+Applies to: Button, Modal close button, all future form controls and interactive elements.
