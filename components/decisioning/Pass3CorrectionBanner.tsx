@@ -47,6 +47,11 @@
 // doesn't dismiss; it stays until the underlying state changes (parent state
 // machine in Batch 9 owns banner lifecycle).
 //
+// Ledger D4: banner has no dismiss handler by design — lifecycle is
+// parent-owned, and race-signal flags clear at the state machine's `RESET`
+// (see `lib/orchestration/stateMachine.ts`), not on banner unmount.
+// Intentional, not a side effect.
+//
 // === TRUST BOUNDARY (generalized for future Pass3RaceBanner inheritance) ===
 //
 // Banner renders identically regardless of DOM placement context. No

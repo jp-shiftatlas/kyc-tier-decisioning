@@ -398,6 +398,11 @@ export function decisioningReducer(
       // return to idle, clear payloads / attemptCount / error / both race
       // flags / both race signals. 9.3 persona-switching and 9.4 "run another
       // custom input" both depend on this.
+      //
+      // Ledger D4: race-signal flags (`raceSignalActionTaken`,
+      // `raceSignalModalOpen`) clear here at `RESET`, not on
+      // Pass3CorrectionBanner unmount. The banner lifecycle is parent-owned
+      // and has no dismiss handler by design.
       return { ...initialState };
     }
 
