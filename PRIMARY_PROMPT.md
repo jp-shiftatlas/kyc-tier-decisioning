@@ -258,7 +258,7 @@ The UI components are shared. The data sources differ.
 - **Source:** `personas.json` bundled with the frontend at build time as a JS import (`import personasData from '@/data/personas.json'`). The locked JSON file at `08_PERSONA_OUTPUTS.md` is the source; the JSON extraction lands during Step 4 mechanical extractions of the build plan.
 - **Flow:** viewer clicks one of four persona cards → simulated loading animation on Pass 1 → render Pass 1 result → simulated loading animation on Pass 2 → render Pass 2 (PASS clean) → done
 - **No real API calls**
-- **Mode-disclosure label** on each card: **"Pre-generated example"** (small caption-style, readable but not visually heavy)
+- **Mode-disclosure label** on each card: **"Pre-generated example output"** (small caption-style, readable but not visually heavy)
 - All four personas ship visually equal-weight — no fourth-persona deprioritization
 
 ### 5.2 Live custom input
