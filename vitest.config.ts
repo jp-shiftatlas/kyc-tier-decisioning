@@ -21,7 +21,12 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
     include: ['**/*.test.ts', '**/*.test.tsx'],
-    exclude: ['node_modules', '.next', 'tests/e2e/**', 'tests/smoke/**'],
+    // .claude/** excluded per Batch 11A Dispatch 2 housekeeping — vitest's
+    // **/*.test.ts glob would otherwise walk ephemeral worktrees under
+    // .claude/worktrees/* and inflate the test count (the 1026-vs-674
+    // inflation surfaced in Dispatch 1). Regression guard for the
+    // multi-worktree glob trap; no effect on default-state tooling.
+    exclude: ['node_modules', '.next', 'tests/e2e/**', 'tests/smoke/**', '.claude/**'],
   },
   resolve: {
     alias: {
