@@ -4,13 +4,12 @@ import { ExaminerNotes } from './ExaminerNotes';
 import { loadPersona } from '@/lib/schemas/personaAdapters';
 
 describe('ExaminerNotes — header + persona context (§5.3)', () => {
-  it('renders "Examiner Notes" header (h2)', () => {
-    const p = loadPersona('maria');
-    render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Examiner Notes' })).toBeInTheDocument();
-  });
+  // The "Examiner Notes" h2 heading was removed in Batch 12 Screen 4 cleanup
+  // per JP feedback — ExaminerNotesScreen's panel headline already labels the
+  // section. The h2 test is correspondingly retired. The persona + customer-
+  // reference subline below remains as the page-context anchor.
 
-  it('renders persona name and customer reference below the header (scoped to header line)', () => {
+  it('renders persona name and customer reference (scoped to header line)', () => {
     const p = loadPersona('maria');
     render(<ExaminerNotes pass1={p.pass_1} personaName={p.name} customerReference={p.profile.customer_reference} />);
     // Exact header-line string match. The persona name may also appear inside

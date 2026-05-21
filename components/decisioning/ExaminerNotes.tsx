@@ -98,8 +98,10 @@ export function ExaminerNotes({ pass1, personaName, customerReference }: Examine
   return (
     <Card variant="elevated">
       <header className="mb-6">
-        <h2 className="font-sans text-xl font-semibold text-text-primary">Examiner Notes</h2>
-        <p className="mt-1 font-sans text-sm text-text-secondary">
+        {/* "Examiner Notes" heading removed per JP Batch 12 Screen 4 feedback —
+            ExaminerNotesScreen's panel headline already labels the section.
+            Persona + customer-reference subline kept as page-context anchor. */}
+        <p className="font-sans text-sm text-text-secondary">
           {personaName} · {customerReference}
         </p>
       </header>

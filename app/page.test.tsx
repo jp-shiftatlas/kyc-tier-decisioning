@@ -7,71 +7,51 @@ afterEach(() => {
   cleanup();
 });
 
-describe('app/page.tsx — assembled-page layout sequence (Batch 10.2 layout + 10.3 wiring)', () => {
-  it('renders the four major section landmarks in canonical order', () => {
+describe('app/page.tsx — Batch 12 wizard restructure', () => {
+  it('renders the WizardShell as the single child of <main>', () => {
     render(<HomePage />);
-    const main = screen.getByTestId('home-main');
-    const sections = Array.from(main.children).map((el) =>
-      (el as HTMLElement).getAttribute('data-testid'),
-    );
-    expect(sections).toEqual([
-      'persona-section',
-      'decisioning-surface',
-      'custom-input-section',
-      'architecture-section',
-    ]);
+    expect(screen.getByTestId('wizard-shell')).toBeInTheDocument();
   });
 
-  it('persona section contains the PersonaSelector', () => {
+  it('renders the StepIndicator above the active screen panel', () => {
     render(<HomePage />);
-    const personaSection = screen.getByTestId('persona-section');
-    expect(personaSection.querySelector('[data-testid="persona-selector"]'))
-      .toBeInTheDocument();
+    expect(screen.getByTestId('step-indicator')).toBeInTheDocument();
   });
 
-  it('decisioning-surface renders the idle prompt at initial mount (10.3 wires state-driven content)', () => {
+  it('renders the persona-select screen at initial mount (auto-bootstrap to S1)', () => {
     render(<HomePage />);
-    const surface = screen.getByTestId('decisioning-surface');
-    expect(surface).toBeInTheDocument();
-    // At initial mount, mode === 'idle' so the surface renders the
-    // institutional-register prompt (Finding-anticipated disposition).
-    expect(surface.querySelector('[data-testid="idle-prompt"]'))
-      .toBeInTheDocument();
+    expect(screen.getByTestId('screen-panel-persona-select')).toBeInTheDocument();
+    expect(screen.getByText('Choose a customer profile')).toBeInTheDocument();
   });
 
-  it('custom-input section contains the CustomInputForm submit button', () => {
+  it('renders the PersonaSelector inside the persona-select panel', () => {
     render(<HomePage />);
-    const submitButton = screen.getByRole('button', {
-      name: /run three-pass analysis/i,
-    });
-    expect(submitButton).toBeInTheDocument();
+    const panel = screen.getByTestId('screen-panel-persona-select');
+    expect(panel.querySelector('[data-testid="persona-selector"]')).toBeInTheDocument();
   });
 
-  it('architecture section contains the ArchitectureStrip', () => {
+  it('renders the "Enter your own profile" tile inside the persona-select panel', () => {
     render(<HomePage />);
-    const archSection = screen.getByTestId('architecture-section');
-    expect(archSection.querySelector('[data-testid="architecture-strip"]'))
-      .toBeInTheDocument();
+    expect(screen.getByText('Enter your own profile')).toBeInTheDocument();
+  });
+
+  it('does NOT render the prior page-bottom ArchitectureStrip at app/page level', () => {
+    render(<HomePage />);
+    // ArchitectureStrip's content lives inside DataFlowMap on Screen 2 now.
+    // At initial mount (S1), no architecture-strip element should render.
+    expect(screen.queryByTestId('architecture-strip')).not.toBeInTheDocument();
   });
 });
 
-describe('app/page.tsx — Decision 39 desktop baseline (10.2 scope preserved at 10.3)', () => {
-  it('main container uses max-w-[1180px] mx-auto for the 1280px design target with 50px gutters', () => {
+describe('app/page.tsx — Decision 47c viewport gutter behavior preserved', () => {
+  it('main container uses max-w-[1180px] mx-auto for the 1280px design target', () => {
     render(<HomePage />);
     const main = screen.getByTestId('home-main');
     expect(main).toHaveClass('mx-auto');
     expect(main).toHaveClass('max-w-[1180px]');
   });
 
-  it('uses gap-16 (64px) section spacing per visual_system.md vertical-rhythm convention', () => {
-    render(<HomePage />);
-    const main = screen.getByTestId('home-main');
-    expect(main).toHaveClass('flex');
-    expect(main).toHaveClass('flex-col');
-    expect(main).toHaveClass('gap-16');
-  });
-
-  it('drops internal padding at xl breakpoint so the 50px gutter rule holds exactly at 1280px viewport', () => {
+  it('drops internal padding at xl breakpoint (50px gutter at 1280px viewport)', () => {
     render(<HomePage />);
     const main = screen.getByTestId('home-main');
     expect(main).toHaveClass('xl:px-0');
@@ -79,24 +59,22 @@ describe('app/page.tsx — Decision 39 desktop baseline (10.2 scope preserved at
   });
 });
 
-describe('app/page.tsx — anti-pattern guard: layout-only at the page layer (9th instance of structural-enforcement pattern)', () => {
-  // At 10.3 the page imports DecisioningOrchestrator (lawful — it is the
-  // designated wiring layer between orchestration hooks and component
-  // callbacks) but does NOT directly import orchestration hooks. The page
-  // stays layout-only; orchestration concerns live one layer deeper.
-  //
-  // Sibling guards: PersonaSelector + AnalystControlPanel + chrome forbid
-  // orchestration imports at their layers; DecisioningOrchestrator is the
-  // single lawful consumer of the orchestration hooks; this page is layout-
-  // only above the orchestrator.
+describe('app/page.tsx — anti-pattern guard: layout-only at the page layer', () => {
+  // After Batch 12.9, the page imports DecisioningProvider (the new state
+  // provider) and WizardShell + the five screens. It does NOT directly
+  // import orchestration hooks or API clients.
   const src = readFileSync('app/page.tsx', 'utf-8');
   const fromPaths = [...src.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
 
-  it('imports DecisioningOrchestrator (lawful at 10.3 — the designated wiring layer)', () => {
-    expect(fromPaths).toContain('@/components/orchestration/DecisioningOrchestrator');
+  it('imports DecisioningProvider (the wizard-era state-owning wrapper)', () => {
+    expect(fromPaths).toContain('@/components/orchestration/DecisioningProvider');
   });
 
-  it('imports zero orchestration-layer modules directly', () => {
+  it('imports WizardShell (the wizard host)', () => {
+    expect(fromPaths).toContain('@/components/wizard/WizardShell');
+  });
+
+  it('imports zero orchestration-layer hook modules directly', () => {
     for (const p of fromPaths) {
       expect(p).not.toMatch(/lib\/orchestration\b/);
     }
@@ -108,11 +86,7 @@ describe('app/page.tsx — anti-pattern guard: layout-only at the page layer (9t
     }
   });
 
-  it('imports zero hooks that would imply page-layer state-machine wiring', () => {
-    // useDecisioningMachine / useLiveDecisioning / usePersonaPlayback — all
-    // consumed inside DecisioningOrchestrator, not at the page layer. Strip
-    // block + line comments before matching so docstring forward-references
-    // don't trip the guard.
+  it('does not reference state-machine hooks at the page layer', () => {
     const sansComments = src
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '');

@@ -98,7 +98,7 @@ export function PersonaSelector({
   return (
     <div
       data-testid="persona-selector"
-      className="flex flex-wrap gap-4"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
     >
       {personas.map((persona) => {
         const isActive = persona.id === activePersonaId;
@@ -121,7 +121,7 @@ export function PersonaSelector({
             <Card
               variant="elevated"
               className={cx(
-                'transition-colors',
+                'flex h-full min-h-[180px] flex-col transition-colors',
                 isActive
                   // Ledger D7: first use of `ring-*` utility for active-state; if extended elsewhere, surface as canonical.
                   ? 'ring-2 ring-accent-primary'

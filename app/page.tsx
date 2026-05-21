@@ -1,65 +1,53 @@
-// app/page.tsx — assembled page; Batch 10.3 wires DecisioningOrchestrator into
-// the 10.2 layout.
+// app/page.tsx — Batch 12.9 wizard restructure.
 //
-// At Batch 10.2 this page rewrote from the Task 5.3 token-verification harness
-// (relocated to app/font-verification/page.tsx) into the assembled demo page
-// with INERT callbacks: PersonaSelector + CustomInputForm rendered positionally
-// with `() => {}` handlers; a decisioning-surface-placeholder section marked
-// the layout slot for 10.3 to fill.
+// Replaces the prior single-scroll layout (PersonaSelector → decisioning-surface
+// → CustomInputForm → ArchitectureStrip sibling sections) with a 5-screen
+// wizard hosted by WizardShell, wrapped in DecisioningProvider per Decision 48.
 //
-// At Batch 10.3 the inert wiring becomes live wiring. The PersonaSelector +
-// decisioning surface + CustomInputForm sections are now rendered by
-// DecisioningOrchestrator (the designated wiring layer between Batches 9.1–9.4
-// orchestration hooks and Batches 8 + 10.1 component callbacks). The page-
-// level layout structure from 10.2 is preserved exactly: ArchitectureStrip
-// continues to sit as a sibling section between the decisioning region and
-// the page footer (per visual_system.md §6 line 211).
+// === LAYOUT ===
 //
-// === LAYOUT SEQUENCE (children of <main>, top to bottom) ===
+// Single <main> region with WizardShell as the only child. WizardShell owns
+// screen navigation; per-screen content lives in the screens map.
 //
-//   1. <persona-section>           — PersonaSelector (mounted by orchestrator)
-//   2. <decisioning-surface>       — state-driven content (mounted by orchestrator)
-//   3. <custom-input-section>      — CustomInputForm (mounted by orchestrator)
-//   4. <architecture-section>      — ArchitectureStrip (Task 7.5)
+// === ARCHITECTURE STRIP ===
 //
-// The four section landmarks remain direct children of <main>; the
-// DecisioningOrchestrator returns a Fragment so its three sections nest at the
-// same level as architecture-section. The 10.2 test's main-children-order
-// assertion holds with the testid update (decisioning-surface-placeholder →
-// decisioning-surface).
+// The ArchitectureStrip page-bottom placement (Decision 42 prior framing) is
+// fully replaced. Its 5-box content is folded into DataFlowMap on Screen 2
+// per Decision 48a. The ArchitectureStrip component file becomes orphaned;
+// flagged for cleanup decision in docs/batch-12-wizard-restructure.md.
 //
-// === DESKTOP BASELINE (Decision 39 / 10.2 SCOPE PRESERVED) ===
+// === DECISIONING PROVIDER ===
 //
-// Container unchanged from 10.2: mx-auto max-w-[1180px] flex flex-col gap-16
-// px-6 py-12 xl:px-0. Mobile reflow remains 10.4 scope.
-//
-// === ANTI-PATTERN GUARD AT 10.3 ===
-//
-// app/page.tsx imports DecisioningOrchestrator (lawful at 10.3 — it is the
-// designated wiring layer). app/page.tsx does NOT directly import any
-// orchestration hook (useDecisioningMachine / usePersonaPlayback /
-// useLiveDecisioning). The page stays layout-only; orchestration concerns
-// live one layer deeper in DecisioningOrchestrator. The source-read guard at
-// app/page.test.tsx asserts this structurally — ninth instance of the
-// structural-enforcement-of-architectural-disciplines pattern at the page
-// layer (and continues to grow at deeper layers: orchestrator guards lawful
-// imports; PersonaSelector + AnalystControlPanel + chrome guards forbid
-// orchestration imports at their respective layers).
+// DecisioningProvider replaces DecisioningOrchestrator as the state-owning
+// wrapper. The provider exposes state via DecisioningContext; screens consume
+// via useDecisioning(). DecisioningOrchestrator becomes orphan after this
+// change.
 
-import { DecisioningOrchestrator } from '@/components/orchestration/DecisioningOrchestrator';
-import { ArchitectureStrip } from '@/components/decisioning/ArchitectureStrip';
+import { WizardShell, type ScreenMap } from '@/components/wizard/WizardShell';
+import { DecisioningProvider } from '@/components/orchestration/DecisioningProvider';
+import { PersonaSelectScreen } from '@/components/screens/PersonaSelectScreen';
+import { DataFlowScreen } from '@/components/screens/DataFlowScreen';
+import { AuditScreen } from '@/components/screens/AuditScreen';
+import { ExaminerNotesScreen } from '@/components/screens/ExaminerNotesScreen';
+import { AnalystActionScreen } from '@/components/screens/AnalystActionScreen';
+
+const SCREENS: ScreenMap = {
+  'persona-select': PersonaSelectScreen,
+  'data-flow': DataFlowScreen,
+  'audit': AuditScreen,
+  'examiner-notes': ExaminerNotesScreen,
+  'analyst-action': AnalystActionScreen,
+};
 
 export default function HomePage() {
   return (
     <main
       data-testid="home-main"
-      className="mx-auto flex max-w-[1180px] flex-col gap-16 px-6 py-12 xl:px-0"
+      className="mx-auto flex max-w-[1180px] flex-col gap-8 px-6 py-12 xl:px-0"
     >
-      <DecisioningOrchestrator />
-
-      <section data-testid="architecture-section" aria-label="Reference architecture">
-        <ArchitectureStrip />
-      </section>
+      <DecisioningProvider>
+        <WizardShell screens={SCREENS} />
+      </DecisioningProvider>
     </main>
   );
 }

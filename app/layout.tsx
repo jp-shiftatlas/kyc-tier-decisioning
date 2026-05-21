@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter, Source_Serif_4, JetBrains_Mono } from 'next/font/google';
 import { PageHeader } from '@/components/chrome/PageHeader';
 import { PageFooter } from '@/components/chrome/PageFooter';
+import { ReferencesSidebar } from '@/components/chrome/ReferencesSidebar';
 
 /*
  * Font loading per visual_system.md §3 type families (Path A — spec wins).
@@ -72,7 +73,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="flex min-h-screen flex-col">
         <PageHeader />
-        <div className="flex-1">{children}</div>
+        <div className="flex flex-1 flex-row">
+          <ReferencesSidebar />
+          <div className="flex-1">{children}</div>
+        </div>
         <PageFooter />
       </body>
     </html>
