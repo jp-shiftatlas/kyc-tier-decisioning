@@ -163,6 +163,33 @@ function makeErrorRef(): string {
   return `ERR-${now.toString(36).toUpperCase()}-${rand}`;
 }
 
+// Friendly message for known model-output failures returned by callPass.
+// The default messages in lib/anthropic/client.ts are operator-facing
+// ("Model output did not match the expected schema."); this maps them to
+// institutional-register visitor copy by pass + error type.
+function friendlyMessageForModelError(
+  errorType: import('@/lib/schemas/apiError').DecisioningError['errorType'],
+  pass: 1 | 2 | 3,
+): string {
+  const passLabel =
+    pass === 1 ? 'tier recommendation' : pass === 2 ? 'compliance audit' : 'correction';
+  switch (errorType) {
+    case 'malformed_model_json':
+      return `The ${passLabel} response could not be parsed. Please try again — if this persists, use one of the pre-generated personas.`;
+    case 'validation_failed':
+      return `The ${passLabel} response was incomplete. Please try again — if this persists, use one of the pre-generated personas.`;
+    case 'upstream_timeout':
+      return `The ${passLabel} step did not complete in time. Please try again.`;
+    case 'rate_limited':
+    case 'cap_reached':
+      // These shouldn't reach this branch — they're handled earlier in the
+      // route. Defensive default.
+      return `The audit could not be completed at this time. Please try again, or use one of the pre-generated personas.`;
+    default:
+      return `The audit could not be completed at this time. Please try again, or use one of the pre-generated personas.`;
+  }
+}
+
 export async function POST(req: Request): Promise<Response> {
   try {
     return await handlePost(req);
@@ -392,7 +419,31 @@ async function handlePost(req: Request): Promise<Response> {
       result.error.errorType === 'upstream_timeout'
         ? 502
         : 400;
-    return respond(result.error, status, rlHeaders);
+    // Wrap the technical message with a customer-friendly version + error
+    // reference id (Batch 12 demo-prep iteration). The original technical
+    // message is logged server-side under the ref so an operator can grep
+    // logs by the ref a visitor reports. Schema-validation failures and
+    // malformed-JSON failures from the model are the dominant case in live
+    // mode; visitors should see institutional-register copy, not Zod
+    // diagnostics. zodIssues stay on the wire body for debugging via Vercel
+    // function logs (deferred tightening per ratification ledger G6).
+    const ref = makeErrorRef();
+    console.error(
+      `[decisioning route] pass ${pass} model-output failure ${ref}:`,
+      result.error,
+    );
+    const friendlyMessage = friendlyMessageForModelError(
+      result.error.errorType,
+      pass,
+    );
+    return respond(
+      {
+        ...result.error,
+        message: `${friendlyMessage} (ref ${ref})`,
+      },
+      status,
+      rlHeaders,
+    );
   }
 
   // Plan amendment #3 — DEBUG_MODE + ?force_correction=1 toggle.
