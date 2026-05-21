@@ -136,7 +136,7 @@ test.describe('Live custom-input — mocked happy path (Maria-baseline Standard 
     // Cap-reached and Pass-3-in-flight do NOT mount on a clean audit.
     await expect(page.getByTestId('cap-reached-surface')).toHaveCount(0);
     await expect(page.getByTestId('pass-3-in-flight')).toHaveCount(0);
-    await expect(page.getByText('Pass 3 — Targeted correction applied')).toHaveCount(0);
+    await expect(page.getByText('Pass 3 — Correction applied')).toHaveCount(0);
 
     // Pass invocation ordering: pass=1, then pass=2. Pass 3 must NOT fire.
     expect(passInvocations.filter((p) => p === '1').length).toBeGreaterThanOrEqual(1);

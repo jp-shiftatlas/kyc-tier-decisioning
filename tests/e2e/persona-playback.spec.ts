@@ -160,11 +160,11 @@ test.describe('Persona playback — locked-output-driven end-to-end (Decision 27
 
       // Pass3CorrectionBanner: per Decision 27 (all four PASS clean), the
       // banner does not appear on persona playback. The banner has no testid
-      // — assert by its canonical header text "Pass 3 — Targeted correction
+      // — assert by its canonical header text "Pass 3 — Correction
       // applied" (or any substring unique to it). Using a substring of the
       // h3 inside the banner.
       await expect(
-        page.getByText('Pass 3 — Targeted correction applied'),
+        page.getByText('Pass 3 — Correction applied'),
       ).toHaveCount(0);
     });
   }

@@ -189,7 +189,7 @@ test.describe('Live custom-input — Pass 3 correction + re-audit (mocked happy 
     // Wait for terminal state — the Pass 3 correction banner renders only
     // at corrected_and_verified terminal (per orchestrator render branch).
     await expect(
-      page.getByText('Pass 3 — Targeted correction applied'),
+      page.getByText('Pass 3 — Correction applied'),
     ).toBeVisible({ timeout: 20_000 });
 
     // Decision 47e regression guard: corrected tier (EDD) renders at terminal,
