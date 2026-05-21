@@ -100,7 +100,100 @@ function buildRateLimitHeaders(rl: {
   };
 }
 
+// Friendly-message mapping per JP Batch 12 Screen 3 feedback. Maps technical
+// exception messages to customer-facing institutional-register strings.
+// Technical detail stays in server logs (console.error with ref id) for
+// post-hoc debugging without burdening the demo viewer.
+function classifyServerError(rawMessage: string): {
+  message: string;
+  errorType: DecisioningError['errorType'];
+  retryable: boolean;
+} {
+  // Configuration: ANTHROPIC_API_KEY missing — deployment not yet wired up
+  // for live audits. Non-retryable for the visitor; they should use a persona.
+  if (rawMessage.includes('ANTHROPIC_API_KEY')) {
+    return {
+      errorType: 'validation_failed',
+      message:
+        'Live audits are not configured on this deployment. Please choose one of the four pre-generated personas to see the demo.',
+      retryable: false,
+    };
+  }
+  // Configuration: Upstash creds missing — rate-limit infra not provisioned.
+  // Cost protection fails-open by design, so the live run can proceed, but if
+  // we get here it means the fail-open path itself errored. Surface as a
+  // transient.
+  if (rawMessage.includes('Upstash') || rawMessage.includes('UPSTASH_')) {
+    return {
+      errorType: 'upstream_timeout',
+      message:
+        'The rate-limit service is temporarily unavailable. Please try again in a moment.',
+      retryable: true,
+    };
+  }
+  // Anthropic SDK errors that escape callPass's own catch (rare — the SDK
+  // wrapper already classifies common cases). Generic upstream timeout.
+  if (
+    rawMessage.toLowerCase().includes('anthropic') ||
+    rawMessage.toLowerCase().includes('api')
+  ) {
+    return {
+      errorType: 'upstream_timeout',
+      message:
+        'The audit could not be completed at this time. Please try again in a moment, or use one of the pre-generated personas.',
+      retryable: true,
+    };
+  }
+  // Catch-all — preserves "something went wrong" semantics without leaking
+  // implementation details.
+  return {
+    errorType: 'upstream_timeout',
+    message:
+      'The audit could not be completed at this time. Please try again, or use one of the pre-generated personas.',
+    retryable: true,
+  };
+}
+
+// Short error reference id: timestamp-based for log-grep correlation. The
+// id appears in BOTH the server log line AND the response body's message,
+// so a visitor can quote the id and the operator can grep logs by it.
+function makeErrorRef(): string {
+  const now = Date.now();
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `ERR-${now.toString(36).toUpperCase()}-${rand}`;
+}
+
 export async function POST(req: Request): Promise<Response> {
+  try {
+    return await handlePost(req);
+  } catch (err: unknown) {
+    // Defense-in-depth: any unhandled exception in the request lifecycle
+    // (cost-protection init, prompt injection, telemetry, Anthropic SDK
+    // construction) gets caught here and returned as a structured
+    // DecisioningError. Technical detail is logged server-side with a
+    // reference id; visitor sees an institutional-register message that
+    // includes the same ref id for support correlation.
+    const rawMessage = err instanceof Error ? err.message : 'unknown server error';
+    const ref = makeErrorRef();
+    console.error(
+      `[decisioning route] unhandled exception ${ref}:`,
+      err,
+    );
+    const classified = classifyServerError(rawMessage);
+    const body: DecisioningError = {
+      pass: 1,
+      errorType: classified.errorType,
+      message: `${classified.message} (ref ${ref})`,
+      retryable: classified.retryable,
+    };
+    return new Response(JSON.stringify(body), {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+}
+
+async function handlePost(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const rawPass = url.searchParams.get('pass');
   const passResult = PassQuerySchema.safeParse(rawPass);
