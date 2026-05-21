@@ -163,6 +163,46 @@ function makeErrorRef(): string {
   return `ERR-${now.toString(36).toUpperCase()}-${rand}`;
 }
 
+// Pass 2 correction-required reconciliation per JP Batch 12 demo testing.
+//
+// Symptom: live Pass 2 returned overall_status: FAIL with material findings
+// in the checks list, but model also set correction_required: false at the
+// document root — an internal inconsistency. The state-machine reads only
+// correction_required to gate Pass 3, so Pass 3 did not fire despite the
+// material violation that would normally trigger correction.
+//
+// Defensive reconciliation: count critical + material severities directly
+// from the checks array (the authoritative per-check signal) and override
+// correction_required to true if findings exist but the model said false.
+// Quality-only findings do not trigger correction (per PRIMARY_PROMPT.md §4.2
+// the persona walkthrough holds at PASS clean; correction fires on
+// critical/material).
+//
+// This also covers the re-audit case (also pass=2): if the corrected Pass 1
+// still produces critical/material findings, the override ensures the state
+// machine routes to correction_failed_surfaced (cap-reached) rather than
+// corrected_and_verified.
+function reconcilePass2CorrectionRequired(data: unknown): unknown {
+  if (!data || typeof data !== 'object') return data;
+  const d = data as { correction_required?: boolean; checks?: unknown[] };
+  const checks = Array.isArray(d.checks) ? d.checks : [];
+  let critical = 0;
+  let material = 0;
+  for (const c of checks) {
+    const sev = (c as { severity?: string } | null)?.severity;
+    if (sev === 'critical') critical += 1;
+    if (sev === 'material') material += 1;
+  }
+  const findingsRequireCorrection = critical > 0 || material > 0;
+  if (findingsRequireCorrection && d.correction_required === false) {
+    console.warn(
+      `[decisioning route] Pass 2 reconciliation: model returned correction_required=false despite ${critical} critical + ${material} material finding(s); overriding to true`,
+    );
+    return { ...d, correction_required: true };
+  }
+  return data;
+}
+
 // Friendly message for known model-output failures returned by callPass.
 // The default messages in lib/anthropic/client.ts are operator-facing
 // ("Model output did not match the expected schema."); this maps them to
@@ -464,5 +504,11 @@ async function handlePost(req: Request): Promise<Response> {
     );
   }
 
-  return respond(result.data, 200, rlHeaders);
+  // Pass 2 reconciliation (always-on): override correction_required to true
+  // if findings counts disagree with the model's self-report. See
+  // reconcilePass2CorrectionRequired above for rationale.
+  const responseData =
+    pass === 2 ? reconcilePass2CorrectionRequired(result.data) : result.data;
+
+  return respond(responseData, 200, rlHeaders);
 }
