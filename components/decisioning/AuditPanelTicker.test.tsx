@@ -96,7 +96,7 @@ describe('AuditPanelTicker — render guards', () => {
     render(<AuditPanelTicker pass2={mariaPass2} shouldAnimate={false} />);
     expect(screen.getByTestId('audit-panel-ticker')).toBeInTheDocument();
     // AuditPanel composes the PassHeadline — confirm the display rendered.
-    expect(screen.getByText('Pass 2 — Audit')).toBeInTheDocument();
+    expect(screen.getByText('Pass 2 — Re-check Pass 1')).toBeInTheDocument();
   });
 });
 

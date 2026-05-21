@@ -101,7 +101,7 @@ export function Pass3CorrectionBanner({ pass3 }: Pass3CorrectionBannerProps) {
     <Card variant="elevated" className="border-l-4 border-l-accent-primary">
       <div className="flex flex-wrap items-baseline gap-3">
         <h3 className="font-sans text-lg font-semibold text-text-primary">
-          Pass 3 — Targeted correction applied
+          Pass 3 — Correction applied
         </h3>
         <Chip variant="accent">CORRECTION APPLIED</Chip>
       </div>

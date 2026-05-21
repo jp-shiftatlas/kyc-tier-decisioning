@@ -45,11 +45,14 @@ describe('passHeadlineProps — integration: mapped props produce the exact Deci
   // produce the verbatim Decision 41d headline strings. If PassHeadline's prop
   // union or label text drifts, this integration test fails alongside the
   // typecheck failure at the spread site.
+  // Labels updated per JP Batch 12 Screen 3 feedback. The Pass 2 audit and
+  // re-audit variants now carry distinct suffixes so "Pass 2" doesn't appear
+  // twice with the same label when Pass 3 fires.
   const cases: Array<{ state: DecisioningState; expected: string }> = [
-    { state: 'pass_1', expected: 'Pass 1 — Tier recommendation' },
-    { state: 'pass_2', expected: 'Pass 2 — Audit' },
-    { state: 'pass_3', expected: 'Pass 3 — Targeted correction' },
-    { state: 're_audit', expected: 'Pass 2 — Re-audit' },
+    { state: 'pass_1', expected: 'Pass 1 — Recommendation' },
+    { state: 'pass_2', expected: 'Pass 2 — Re-check Pass 1' },
+    { state: 'pass_3', expected: 'Pass 3 — Correction' },
+    { state: 're_audit', expected: 'Pass 2 — Re-check Pass 1 (after correction)' },
   ];
 
   for (const { state, expected } of cases) {

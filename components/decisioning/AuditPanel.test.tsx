@@ -6,10 +6,10 @@ import { sortChecks } from '@/lib/orchestration/sortChecks';
 import personasData from '@/data/personas.json';
 
 describe('AuditPanel — composite orchestrator (§5.2 / Decision 27)', () => {
-  it('renders the Pass 2 — Audit pass-naming headline (Decision 41 S3)', () => {
+  it('renders the Pass 2 — Re-check Pass 1 pass-naming headline (Decision 41 S3)', () => {
     const p = loadPersona('maria');
     render(<AuditPanel pass2={p.pass_2} revealedCount={p.pass_2.checks.length} />);
-    expect(screen.getByText('Pass 2 — Audit')).toBeInTheDocument();
+    expect(screen.getByText('Pass 2 — Re-check Pass 1')).toBeInTheDocument();
   });
 
   it('renders the overall_status chip in the header (scoped lookup — per-check chips also render PASS)', () => {

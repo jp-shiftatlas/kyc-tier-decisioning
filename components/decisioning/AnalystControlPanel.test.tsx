@@ -288,7 +288,7 @@ describe('AnalystControlPanel — Decision 36h race coordination + Pass3 banner 
       pass1: loadPersona('maria').pass_1,
       pass3: mockPass3,
     });
-    expect(screen.getByText('Pass 3 — Targeted correction applied')).toBeInTheDocument();
+    expect(screen.getByText('Pass 3 — Correction applied')).toBeInTheDocument();
   });
 
   it('does NOT render Pass3CorrectionBanner after an analyst action is taken', () => {
@@ -299,7 +299,7 @@ describe('AnalystControlPanel — Decision 36h race coordination + Pass3 banner 
       pass3: mockPass3,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
-    expect(screen.queryByText('Pass 3 — Targeted correction applied')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pass 3 — Correction applied')).not.toBeInTheDocument();
   });
 
   it('renders Pass3RaceBanner ABOVE the panel when raceTrigger:true AND no override modal open (default placement)', () => {

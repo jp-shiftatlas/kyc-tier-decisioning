@@ -30,9 +30,9 @@ const mockPass3: Pass3Output = {
 };
 
 describe('Pass3CorrectionBanner — Decision 8 / Decision 20 render', () => {
-  it('renders the "Pass 3 — Targeted correction applied" headline', () => {
+  it('renders the "Pass 3 — Correction applied" headline', () => {
     render(<Pass3CorrectionBanner pass3={mockPass3} />);
-    expect(screen.getByText('Pass 3 — Targeted correction applied')).toBeInTheDocument();
+    expect(screen.getByText('Pass 3 — Correction applied')).toBeInTheDocument();
   });
 
   it('renders summary text below the headline', () => {
@@ -183,9 +183,9 @@ describe('Pass3CorrectionBanner — anti-spec regression guards', () => {
   it('NO auto-dismiss — banner persists across advanced timers', () => {
     vi.useFakeTimers();
     render(<Pass3CorrectionBanner pass3={mockPass3} />);
-    expect(screen.getByText('Pass 3 — Targeted correction applied')).toBeInTheDocument();
+    expect(screen.getByText('Pass 3 — Correction applied')).toBeInTheDocument();
     vi.advanceTimersByTime(30_000); // 30 seconds
-    expect(screen.getByText('Pass 3 — Targeted correction applied')).toBeInTheDocument();
+    expect(screen.getByText('Pass 3 — Correction applied')).toBeInTheDocument();
     vi.useRealTimers();
   });
 

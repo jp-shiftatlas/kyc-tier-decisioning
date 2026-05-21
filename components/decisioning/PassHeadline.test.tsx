@@ -4,24 +4,27 @@ import { PassHeadline } from './PassHeadline';
 import { ElapsedTimeIndicator } from './ElapsedTimeIndicator';
 
 describe('PassHeadline — Decision 41 S3 persistent section label', () => {
-  it('renders "Pass 1 — Tier recommendation" for variant=recommendation', () => {
+  // Labels updated per JP Batch 12 Screen 3 feedback. Decision 41 S3
+  // canonical names superseded by visitor-facing labels that distinguish
+  // the audit and re-audit Pass 2 calls without repeating the suffix.
+  it('renders "Pass 1 — Recommendation" for variant=recommendation', () => {
     render(<PassHeadline pass={1} variant="recommendation" />);
-    expect(screen.getByText('Pass 1 — Tier recommendation')).toBeInTheDocument();
+    expect(screen.getByText('Pass 1 — Recommendation')).toBeInTheDocument();
   });
 
-  it('renders "Pass 2 — Audit" for variant=audit', () => {
+  it('renders "Pass 2 — Re-check Pass 1" for variant=audit', () => {
     render(<PassHeadline pass={2} variant="audit" />);
-    expect(screen.getByText('Pass 2 — Audit')).toBeInTheDocument();
+    expect(screen.getByText('Pass 2 — Re-check Pass 1')).toBeInTheDocument();
   });
 
-  it('renders "Pass 3 — Targeted correction" for variant=correction', () => {
+  it('renders "Pass 3 — Correction" for variant=correction', () => {
     render(<PassHeadline pass={3} variant="correction" />);
-    expect(screen.getByText('Pass 3 — Targeted correction')).toBeInTheDocument();
+    expect(screen.getByText('Pass 3 — Correction')).toBeInTheDocument();
   });
 
-  it('renders "Pass 2 — Re-audit" for variant=reaudit', () => {
+  it('renders "Pass 2 — Re-check Pass 1 (after correction)" for variant=reaudit', () => {
     render(<PassHeadline pass={2} variant="reaudit" />);
-    expect(screen.getByText('Pass 2 — Re-audit')).toBeInTheDocument();
+    expect(screen.getByText('Pass 2 — Re-check Pass 1 (after correction)')).toBeInTheDocument();
   });
 
   it('uses h2 semantic element with --text-lg semibold --text-primary --font-sans', () => {

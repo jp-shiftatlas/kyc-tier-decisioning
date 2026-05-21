@@ -20,11 +20,14 @@ interface PassHeadlineProps {
   variant: 'recommendation' | 'audit' | 'correction' | 'reaudit';
 }
 
+// Labels per JP Batch 12 Screen 3 feedback (overrides prior Decision 41 S3
+// canonical names). The reaudit variant uses a distinct label from audit so
+// "Pass 2" doesn't appear with the same suffix twice when Pass 3 fires.
 const LABELS: Record<PassHeadlineProps['variant'], string> = {
-  recommendation: 'Tier recommendation',
-  audit: 'Audit',
-  correction: 'Targeted correction',
-  reaudit: 'Re-audit',
+  recommendation: 'Recommendation',
+  audit: 'Re-check Pass 1',
+  correction: 'Correction',
+  reaudit: 'Re-check Pass 1 (after correction)',
 };
 
 export function PassHeadline({ pass, variant }: PassHeadlineProps) {
