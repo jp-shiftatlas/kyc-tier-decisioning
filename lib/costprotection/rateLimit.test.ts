@@ -84,16 +84,19 @@ describe('checkRateLimit (L1 hourly, Path A — @upstash/ratelimit)', () => {
     expect(mockLimit).toHaveBeenNthCalledWith(2, '5.6.7.8');
   });
 
-  it('configures Ratelimit.slidingWindow with (3, "1 h")', async () => {
+  it('configures Ratelimit.slidingWindow with (RATE_LIMIT_HOURLY, "1 h")', async () => {
+    // Cap raised from 3 to 5 per JP Batch 12 demo-prep iteration so a
+    // single live run (now scoped per-Pass-1 in route.ts) plus 4 retries
+    // fit comfortably within the hourly window during discovery-call demos.
     mockLimit.mockResolvedValue({
       success: true,
-      limit: 3,
-      remaining: 2,
+      limit: 5,
+      remaining: 4,
       reset: 0,
     });
-    const { checkRateLimit } = await import('./rateLimit');
+    const { checkRateLimit, RATE_LIMIT_HOURLY } = await import('./rateLimit');
     await checkRateLimit('1.2.3.4');
-    expect(mockSlidingWindow).toHaveBeenCalledWith(3, '1 h');
+    expect(mockSlidingWindow).toHaveBeenCalledWith(RATE_LIMIT_HOURLY, '1 h');
   });
 
   // ─── Fail-open regression guards (JP Constraint 3) ───

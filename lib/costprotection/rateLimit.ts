@@ -19,7 +19,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { redis } from './redis';
 import { recordUpstashFailure } from './upstashFailures';
 
-export const RATE_LIMIT_HOURLY = 3;
+export const RATE_LIMIT_HOURLY = 5;
 
 let _limiter: Ratelimit | null = null;
 function limiter(): Ratelimit {
