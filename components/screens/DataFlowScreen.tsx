@@ -23,7 +23,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DataFlowMap, type LiveSlotKey } from '@/components/decisioning/DataFlowMap';
 import {
@@ -76,8 +76,14 @@ function DataFlowLiveMode({ extracting }: { extracting: boolean }) {
   const wizard = useWizard();
   const decisioning = useDecisioning();
 
+  // CustomerProfileSchema's preprocess refinement on occupation_type widens
+  // the inferred output type to `unknown` on that field, which conflicts
+  // with RHF's Resolver<CustomerProfile> expectation of `string`. The schema
+  // itself returns a string at runtime (the preprocess normalizes input to
+  // enum or trimmed free-text), so the cast is type-system reconciliation
+  // only — runtime validation behavior is unchanged.
   const methods = useForm<CustomerProfile>({
-    resolver: zodResolver(CustomerProfileSchema),
+    resolver: zodResolver(CustomerProfileSchema) as unknown as Resolver<CustomerProfile>,
     mode: 'onBlur',
   });
 
