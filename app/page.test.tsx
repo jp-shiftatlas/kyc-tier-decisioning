@@ -30,9 +30,12 @@ describe('app/page.tsx — Batch 12 wizard restructure', () => {
     expect(panel.querySelector('[data-testid="persona-selector"]')).toBeInTheDocument();
   });
 
-  it('renders the "Enter your own profile" tile inside the persona-select panel', () => {
+  it('hides the "Enter your own profile" tile when NEXT_PUBLIC_LIVE_MODE_ENABLED is not set (Batch 12 demo-prep kill switch)', () => {
+    // Live mode is hidden by default per docs/live-mode-known-issues.md.
+    // The tile only renders when NEXT_PUBLIC_LIVE_MODE_ENABLED === 'true'.
+    // Production page test runs with the env var unset → tile absent.
     render(<HomePage />);
-    expect(screen.getByText('Enter your own profile')).toBeInTheDocument();
+    expect(screen.queryByText('Enter your own profile')).not.toBeInTheDocument();
   });
 
   it('does NOT render the prior page-bottom ArchitectureStrip at app/page level', () => {

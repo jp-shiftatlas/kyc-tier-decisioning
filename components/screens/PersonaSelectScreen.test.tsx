@@ -1,10 +1,29 @@
 // components/screens/PersonaSelectScreen.test.tsx
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { PersonaSelectScreen } from './PersonaSelectScreen';
 import { WizardContext } from '@/components/wizard/WizardContext';
 import { DecisioningContext, type DecisioningContextValue } from '@/components/orchestration/DecisioningContext';
+
+// Live-mode kill switch was added in Batch 12 demo-prep (see
+// docs/live-mode-known-issues.md). PersonaSelectScreen reads
+// NEXT_PUBLIC_LIVE_MODE_ENABLED at module-eval time. Tests assert the
+// "Enter your own profile" tile renders + handles selection — so set the
+// env var to 'true' for this test file. The PersonaSelectScreen module is
+// imported lazily AFTER the env var is set.
+const ORIGINAL_LIVE_MODE_ENV = process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED;
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED = 'true';
+  vi.resetModules();
+});
+afterAll(() => {
+  if (ORIGINAL_LIVE_MODE_ENV === undefined) {
+    delete process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED;
+  } else {
+    process.env.NEXT_PUBLIC_LIVE_MODE_ENABLED = ORIGINAL_LIVE_MODE_ENV;
+  }
+});
 
 afterEach(() => {
   cleanup();
