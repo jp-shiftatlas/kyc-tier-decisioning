@@ -467,7 +467,11 @@ describe('/api/decisioning — debug toggle (plan amendment #3)', () => {
     delete process.env.DEBUG_MODE;
   });
 
-  it('debug-toggled response still carries rate-limit headers', async () => {
+  it('debug-toggled Pass 2 response does NOT carry rate-limit headers (Batch 12 scoping)', async () => {
+    // Batch 12 amendment: rate-limit + kill-switch check only fires on
+    // pass === 1 (counts per live run, not per pass call). Pass 2/3 follow-ups
+    // within the same run skip the cost-protection layer and therefore do
+    // not emit rate-limit headers.
     process.env.DEBUG_MODE = 'true';
     mockCreate.mockResolvedValue({
       content: [{ type: 'text', text: JSON.stringify(validPass2Clean) }],
@@ -478,8 +482,8 @@ describe('/api/decisioning — debug toggle (plan amendment #3)', () => {
       {},
       '&force_correction=1',
     );
-    expect(res.headers.get('X-RateLimit-Limit')).toBe('3');
-    expect(res.headers.get('X-RateLimit-Remaining')).toBe('2');
+    expect(res.headers.get('X-RateLimit-Limit')).toBe(null);
+    expect(res.headers.get('X-RateLimit-Remaining')).toBe(null);
     delete process.env.DEBUG_MODE;
   });
 

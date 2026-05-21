@@ -252,8 +252,20 @@ async function handlePost(req: Request): Promise<Response> {
   // L1 rate-limit → L3 kill-switch → API dispatch. Both fail BEFORE incurring
   // any Anthropic API cost. Headers from L1 propagate to every subsequent
   // response (Addition 2).
+  //
+  // Scope (Batch 12 amendment): rate-limit + kill-switch + live_runs
+  // telemetry count PER LIVE RUN, not per pass call. PRIMARY_PROMPT.md §4.8
+  // says "3 live runs / IP / hour" and "50 live runs / day-UTC global cap" —
+  // one live run is up to 4 sequential pass calls (Pass 1 + Pass 2 +
+  // conditional Pass 3 + re-audit). If we counted per call, the per-IP
+  // hourly limit would be hit by a single submission, contradicting spec
+  // intent. The Pass 1 dispatch is the canonical "live run starts" event;
+  // downstream Pass 2 / 3 calls are follow-ups within the same run and
+  // skip the cost-protection layer.
   const ip = getIp(req);
-  const rl = await checkRateLimit(ip);
+  const rl = pass === 1
+    ? await checkRateLimit(ip)
+    : { allowed: true, count: null, remaining: null, reset: null };
   const rlHeaders = buildRateLimitHeaders(rl);
 
   if (!rl.allowed) {
@@ -269,14 +281,16 @@ async function handlePost(req: Request): Promise<Response> {
     );
   }
 
-  const ks = await checkKillSwitch();
-  if (!ks.allowed) {
-    await incrementCounter('kill_switch_triggers');
-    return respond(
-      makeError(pass, 'cap_reached', ERROR_MESSAGES.cap_reached, false),
-      429,
-      rlHeaders,
-    );
+  if (pass === 1) {
+    const ks = await checkKillSwitch();
+    if (!ks.allowed) {
+      await incrementCounter('kill_switch_triggers');
+      return respond(
+        makeError(pass, 'cap_reached', ERROR_MESSAGES.cap_reached, false),
+        429,
+        rlHeaders,
+      );
+    }
   }
 
   // ─── Profile validation ──────────────────────────────────────────────────
@@ -364,7 +378,12 @@ async function handlePost(req: Request): Promise<Response> {
     });
   }
 
-  await incrementCounter('live_runs');
+  // Telemetry: count one "live run" per Pass 1 dispatch (the canonical
+  // start-of-run event), aligned with the cost-protection scoping above.
+  // Pass 2/3 follow-ups within the same run do not double-count.
+  if (pass === 1) {
+    await incrementCounter('live_runs');
+  }
 
   if (!result.ok) {
     await incrementCounter('error_counts');
