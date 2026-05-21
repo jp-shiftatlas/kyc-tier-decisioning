@@ -141,6 +141,7 @@ export function AuditScreen() {
         return headlineProps ? (
           <section className="flex flex-col gap-3">
             <PassHeadline {...headlineProps} />
+            <AnalysisLoadingBar />
             <p className="font-sans text-sm italic text-text-tertiary">
               {PASS_1_SIM_LABEL}
             </p>
@@ -150,8 +151,18 @@ export function AuditScreen() {
       case 'pass_2':
       case 're_audit': {
         const auditData = stateValue === 'pass_2' ? pass2Output : reAuditOutput;
-        // AuditPanel renders its own "Pass 2 — Re-check Pass 1" headline; the
-        // outer PassHeadline above is intentionally omitted (was duplicate).
+        // Two sub-paths in this state:
+        //   auditData null  → pass-in-flight, no data yet from the model.
+        //                     Show pass headline + AnalysisLoadingBar + caption
+        //                     so the visitor knows Pass 2 is running. Live mode
+        //                     hits this branch between the Pass 1 response and
+        //                     the Pass 2 response.
+        //   auditData set   → AuditPanelTicker renders the checks (which carries
+        //                     its own internal Pass 2 headline).
+        const inFlightCaption =
+          stateValue === 'pass_2'
+            ? 'Re-checking Pass 1 against the ruleset…'
+            : 'Re-checking corrected Pass 1 against the ruleset…';
         return (
           <div className="flex flex-col gap-6">
             {effectivePass1 && (
@@ -160,12 +171,22 @@ export function AuditScreen() {
                 <RecommendationCard pass1={effectivePass1} />
               </section>
             )}
-            {auditData && (
+            {auditData ? (
               <AuditPanelTicker
                 pass2={auditData}
                 shouldAnimate={shouldAnimate}
                 live={mode === 'live'}
               />
+            ) : (
+              headlineProps && (
+                <section className="flex flex-col gap-3">
+                  <PassHeadline {...headlineProps} />
+                  <AnalysisLoadingBar />
+                  <p className="font-sans text-sm italic text-text-tertiary">
+                    {inFlightCaption}
+                  </p>
+                </section>
+              )
             )}
           </div>
         );
@@ -182,6 +203,7 @@ export function AuditScreen() {
             )}
             <section className="flex flex-col gap-3">
               {headlineProps && <PassHeadline {...headlineProps} />}
+              <AnalysisLoadingBar />
               <p
                 data-testid="pass-3-in-flight"
                 className="font-sans text-sm italic text-text-tertiary"

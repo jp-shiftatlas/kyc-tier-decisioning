@@ -24,6 +24,7 @@ import { TierBadge } from '@/components/primitives/TierBadge';
 import { TabularNumber } from '@/components/primitives/TabularNumber';
 import { Chip } from '@/components/primitives/Chip';
 import { ChevronDisclosure } from '@/components/primitives/ChevronDisclosure';
+import { lookupRule } from '@/lib/decisioning/ruleCatalog';
 
 interface RecommendationCardProps {
   pass1: Pass1Output;
@@ -104,19 +105,29 @@ export function RecommendationCard({ pass1 }: RecommendationCardProps) {
           {whyOpen && (
             <ul className="mt-3 flex flex-col gap-3">
               {pass1.rules_fired.map((rule) => {
+                // The locked persona JSONs carry rule_name + tier_impact as
+                // looseObject passthrough fields (curated content). Live
+                // model output is constrained by the Path Q template to
+                // declared schema fields only — so rule_name and tier_impact
+                // are absent on live runs. Fall back to the static ruleCatalog
+                // (sourced from ruleset_v1.md) to keep the "Why this tier?"
+                // panel substantive across both modes.
                 const r = rule as { rule_id: string; rule_name?: string; tier_impact?: string };
+                const fallback = lookupRule(r.rule_id);
+                const displayName = r.rule_name ?? fallback?.name;
+                const displayImpact = r.tier_impact ?? fallback?.tier_impact;
                 return (
                   <li key={r.rule_id} className="flex flex-col gap-1">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="font-mono text-sm text-text-primary">{r.rule_id}</span>
-                      {r.rule_name && (
+                      {displayName && (
                         <span className="font-sans text-sm text-text-secondary">
-                          — {r.rule_name}
+                          — {displayName}
                         </span>
                       )}
                     </div>
-                    {r.tier_impact && (
-                      <p className="font-sans text-sm text-text-secondary">{r.tier_impact}</p>
+                    {displayImpact && (
+                      <p className="font-sans text-sm text-text-secondary">{displayImpact}</p>
                     )}
                   </li>
                 );
