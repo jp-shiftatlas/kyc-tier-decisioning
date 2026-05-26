@@ -1,41 +1,76 @@
 // components/primitives/Card.tsx
-// Card surface primitive per visual_system.md §5 component constraints.
+// Card surface primitive per visual_system.md §5 component constraints,
+// extended with Batch 12 product-polish variants.
 //
-// Anchors (per Batch 6+ docstring back-reference discipline):
-//   §2  — surface tokens (--surface-elevated, --surface-recessed) + border token
-//         (--border-default warm-grey #D9D2C5)
-//   §4  — whitespace discipline: "Cards have 24px internal padding minimum"
-//   §5.1 / §5.5 / §5.6 — primary content cards on --surface-elevated
-//   §5.4 — architecture-strip side boxes (non-middle four) on --surface-recessed
+// Variants:
+//   - elevated (default) : white surface, soft shadow (sm), warm-grey border
+//   - recessed           : warm-grey surface, no shadow (§5.4 side-box treatment)
+//   - hero               : warm-cream surface, slightly more padding, soft shadow
+//                          (sm); reserved for hero/feature surfaces (Screen 1
+//                          headline band, RecommendationCard)
 //
-// Variants are surface treatments only:
-//   - elevated (default): white surface for primary content (§5.1, §5.5, §5.6)
-//   - recessed:           warm-grey surface for §5.4 side boxes
+// The shadow on `elevated` is the most consequential Batch 12 deviation
+// from the prior flat-card discipline — adds editorial depth without
+// crossing into consumer-app drop-shadow territory. Token values live in
+// globals.css (`--shadow-card-sm` / `--shadow-card-md`) and harmonize with
+// the typography palette via low-alpha text-primary tone.
 //
-// No semantic variants (no card-success, card-warning, etc.) — composition layer
-// composes meaning via content and context, not via Card props.
+// `interactive` prop opts a card into a hover-lift treatment (shadow goes
+// sm → md). Used by clickable cards (persona cards, "Enter your own"
+// tile); read-only cards leave it off.
 //
-// No border-radius — institutional register (Financial Times, Economist, BSP
-// annual report) uses crisp 90° corners. visual_system.md does not name a
-// corner radius; per standing instruction #3, no unrequested affordance.
-//
-// className prop is the composition-layer override hatch — positioning, margin,
-// width constraints, and per-context surface overrides (e.g., §5.4 middle
-// architecture-strip box uses --accent-primary background via className).
+// className prop is the composition-layer override hatch — positioning,
+// margin, width constraints, per-context surface overrides.
 
 import type { ReactNode } from 'react';
 import { cx } from '@/lib/ui/classnames';
 
 interface CardProps {
-  variant?: 'elevated' | 'recessed';
+  variant?: 'elevated' | 'recessed' | 'hero';
+  interactive?: boolean;
   className?: string;
   children: ReactNode;
 }
 
-export function Card({ variant = 'elevated', className, children }: CardProps) {
-  const surface = variant === 'recessed' ? 'bg-surface-recessed' : 'bg-surface-elevated';
+const SURFACE_CLASSES: Record<Required<CardProps>['variant'], string> = {
+  elevated: 'bg-surface-elevated border border-border-default',
+  recessed: 'bg-surface-recessed border border-border-default',
+  hero: 'bg-surface-warm border border-border-default',
+};
+
+// Soft shadow per variant. Recessed cards stay flat (they sit INSIDE other
+// surfaces and don't need depth). Elevated + hero carry the soft shadow.
+const SHADOW_CLASSES: Record<Required<CardProps>['variant'], string> = {
+  elevated: 'shadow-[var(--shadow-card-sm)]',
+  recessed: '',
+  hero: 'shadow-[var(--shadow-card-sm)]',
+};
+
+const INTERACTIVE_CLASSES =
+  'transition-shadow duration-150 hover:shadow-[var(--shadow-card-md)]';
+
+const PADDING_CLASSES: Record<Required<CardProps>['variant'], string> = {
+  elevated: 'p-6',
+  recessed: 'p-6',
+  hero: 'p-8',
+};
+
+export function Card({
+  variant = 'elevated',
+  interactive = false,
+  className,
+  children,
+}: CardProps) {
   return (
-    <div className={cx('border border-border-default p-6', surface, className)}>
+    <div
+      className={cx(
+        PADDING_CLASSES[variant],
+        SURFACE_CLASSES[variant],
+        SHADOW_CLASSES[variant],
+        interactive && INTERACTIVE_CLASSES,
+        className,
+      )}
+    >
       {children}
     </div>
   );

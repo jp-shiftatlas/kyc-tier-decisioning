@@ -173,7 +173,7 @@ describe('PersonaSelector — active state visual (Finding B accessibility + Car
     ).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('active card surface gets ring-2 ring-accent-primary; inactive cards do not', () => {
+  it('active card surface gets ring-2 ring-accent-primary; inactive cards get hover-shadow lift (Batch 12 polish)', () => {
     const { container } = render(
       <PersonaSelector activePersonaId="maria" onPersonaChange={() => {}} />,
     );
@@ -186,9 +186,9 @@ describe('PersonaSelector — active state visual (Finding B accessibility + Car
     const carlosBtn = screen.getByRole('button', { name: 'Select Carlos' });
     const carlosCard = carlosBtn.firstElementChild as HTMLElement;
     expect(carlosCard).not.toHaveClass('ring-2');
-    // Inactive cards instead get a hover-state surface treatment.
-    expect(carlosCard).toHaveClass('hover:bg-surface-recessed');
-    // Suppress unused-container warning.
+    // Batch 12: inactive cards use the Card primitive's `interactive` prop
+    // for hover-shadow lift instead of a background-shift hover.
+    expect(carlosCard.className).toMatch(/hover:shadow/);
     expect(container).toBeTruthy();
   });
 });

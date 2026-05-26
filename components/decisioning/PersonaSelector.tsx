@@ -1,75 +1,21 @@
 'use client';
-// components/decisioning/PersonaSelector.tsx
-// PersonaSelector — case-selector affordance for the four pre-generated
-// personas. First consumer of listPersonas() (zero consumers prior to 10.1).
+// components/decisioning/PersonaSelector.tsx — Batch 12 product polish.
 //
-// Anchors (per Batch 6+ docstring back-reference discipline):
-//   01_PROJECT_BRIEF.md:131 (project-knowledge corpus) —
-//     "Each persona card carries a small label: 'Pre-generated example output.'"
-//   03_DESIGN_DECISIONS.md:211 (project-knowledge corpus) —
-//     "Each persona card carries a small label 'Pre-generated example output.'"
-//   PRIMARY_PROMPT.md §5.1 lines 259–262 (worktree corpus) — four persona cards,
-//     visually equal-weight, no fourth-persona deprioritization. Worktree
-//     PRIMARY_PROMPT.md:261 shows the microcopy as "Pre-generated example"
-//     (no trailing "output") — this is documentation-drift from the canonical
-//     project-knowledge microcopy and is flagged for Batch 11 ratification
-//     (sibling to the 41-sublabel + "Decision 41c" vs "Decision 41 S2"
-//     documentation-drift findings). Implementation binds to the canonical.
-//   Decision 22 (amended by Decision 27) — all four personas visually
-//     equal-weight; Persona D is no longer "advanced/edge-handling" content.
-//   Decision 27 — all four personas at PASS clean; visible self-correction
-//     repositioned to opportunistic-on-live-input.
-//   Decision 36e — persona button functions as case-selector; switching
-//     mid-action resets all action state (AnalystControlPanel orchestrates
-//     the reset via its useEffect on personaId; this component just emits
-//     the selection change).
+// PersonaSelector renders the four persona cards. Batch 12 upgrade:
+//   - Tier preview badge in the top-right of each card (slate-subtle bg)
+//   - Scenario tag (short label) below the descriptor
+//   - Soft shadow on resting state; lifts on hover (Card primitive's
+//     `interactive` prop)
+//   - Persona name promoted to text-lg
+//   - Active state retains the slate ring; hover state composes shadow lift
+//   - Microcopy moved to bottom of card as small caption
 //
-// === CARD PRIMITIVE WITH COMPOSITION-LAYER BUTTON SEMANTICS ===
-//
-// Uses Card primitive (variant="elevated") rather than Button primitive —
-// corpus is consistent on "card" framing across three references
-// (01_PROJECT_BRIEF.md:131, 03_DESIGN_DECISIONS.md:211, PRIMARY_PROMPT.md §5.1).
-// Button primitive's three §5.5 variants (primary/outline/subtle) are tuned
-// for the Approve/Escalate/Override semantics, not for a card-shaped
-// multi-line click target.
-//
-// Card primitive's presentational <div> is wrapped at the composition layer
-// with interactive role per WAI-ARIA "button" role guidance:
-//   https://www.w3.org/WAI/ARIA/apg/patterns/button/
-//   - role="button"
-//   - tabIndex={0}
-//   - aria-pressed reflects active state
-//   - onKeyDown handles Space + Enter activation per WAI-ARIA APG
-//
-// The wrapper-around-Card structure makes the entire card surface (including
-// the Card's 24px padding) clickable; if role="button" lived on a div INSIDE
-// the Card, clicks on the padding would miss the handler.
-//
-// === ARIA: button + aria-pressed (toggle), NOT radio ===
-//
-// Click-active-deselect semantics (clicking the active card emits null per
-// Finding F disposition) means exactly zero-or-one persona can be active.
-// The radiogroup pattern requires mutual exclusion with exactly-one selected;
-// it does not admit deselection. Toggle-button pattern with aria-pressed is
-// the correct fit. Each card is independently toggleable; the parent enforces
-// the "at most one active" invariant by passing activePersonaId.
-//
-// === COMPOSITION DISCIPLINE (10.1 anti-pattern guards) ===
-//
-// Component owns:
-//   - Card-shaped clickable affordance per persona from listPersonas()
-//   - Active-state visual via className override (ring-2 ring-accent-primary)
-//   - Click + Space/Enter keyboard activation
-//   - Click-active-deselect semantics (clickedId === activeId → emit null)
-//
-// Component does NOT own:
-//   - State-machine knowledge (NO imports from @/lib/orchestration/*)
-//   - Persona playback dispatch (parent at 10.3 wires onPersonaChange to
-//     usePersonaPlayback)
-//   - Decisioning trigger logic
-//
-// Static-analysis guards in PersonaSelector.test.tsx enforce the import
-// surface; sibling to the personaPlayback.test.ts no-API-imports pattern.
+// Anchors preserved from prior Batch 10.1 docstring:
+//   - Decision 22 + 27: four visually equal-weight cards
+//   - Decision 36e: persona button functions as case-selector
+//   - WAI-ARIA toggle-button pattern (role=button + aria-pressed)
+//   - Click-active-deselect semantics (clicking the active card emits null)
+//   - No orchestration imports (composition-layer regression-guarded)
 
 import { listPersonas, type PersonaId } from '@/lib/schemas/personaAdapters';
 import { Card } from '@/components/primitives/Card';
@@ -80,9 +26,32 @@ interface PersonaSelectorProps {
   onPersonaChange: (personaId: PersonaId | null) => void;
 }
 
-// Canonical microcopy per 01_PROJECT_BRIEF.md:131 + 03_DESIGN_DECISIONS.md:211.
-// Worktree PRIMARY_PROMPT.md:261 documentation-drift flagged for Batch 11.
 const MODE_DISCLOSURE_LABEL = 'Pre-generated example output';
+
+// Tier preview + scenario tag per persona — Batch 12 addition. Lifted from
+// the persona JSONs (pass_1.decision.recommended_tier) + persona-curated
+// scenario summary. If a persona ever evolves, the mapping is local to this
+// component so the discovery doesn't require a separate file.
+//
+// Scenario tag is the one-line "case shape" label that helps a viewer
+// understand what each persona exercises without reading the descriptor:
+//   - Maria        → standard onboarding (baseline)
+//   - Carlos       → PEP-adjacent EDD (escalation triggers fire)
+//   - Convergent   → Jurisdiction-driven EDD (compounding pattern)
+//   - Doc-Process  → Documentation compounding (Standard with EDD nuance)
+const PERSONA_TIER: Record<string, string> = {
+  maria: 'Standard',
+  carlos: 'EDD',
+  persona_c: 'EDD',
+  persona_d: 'Standard',
+};
+
+const PERSONA_SCENARIO: Record<string, string> = {
+  maria: 'Standard onboarding',
+  carlos: 'PEP-adjacent EDD',
+  persona_c: 'Jurisdiction-driven EDD',
+  persona_d: 'Documentation compounding',
+};
 
 export function PersonaSelector({
   activePersonaId,
@@ -91,7 +60,6 @@ export function PersonaSelector({
   const personas = listPersonas();
 
   const handleSelect = (clickedId: PersonaId) => {
-    // Finding F disposition: emit destination state (clicked-active → null deselect).
     onPersonaChange(clickedId === activePersonaId ? null : clickedId);
   };
 
@@ -102,6 +70,8 @@ export function PersonaSelector({
     >
       {personas.map((persona) => {
         const isActive = persona.id === activePersonaId;
+        const tier = PERSONA_TIER[persona.id] ?? '—';
+        const scenario = PERSONA_SCENARIO[persona.id] ?? '';
         return (
           <div
             key={persona.id}
@@ -120,24 +90,44 @@ export function PersonaSelector({
           >
             <Card
               variant="elevated"
+              interactive
               className={cx(
-                'flex h-full min-h-[180px] flex-col transition-colors',
+                'flex h-full min-h-[210px] flex-col border-l-4',
                 isActive
-                  // Ledger D7: first use of `ring-*` utility for active-state; if extended elsewhere, surface as canonical.
-                  ? 'ring-2 ring-accent-primary'
-                  : 'hover:bg-surface-recessed',
+                  ? 'border-l-accent-primary ring-2 ring-accent-primary'
+                  : 'border-l-border-default',
               )}
             >
-              <div className="flex flex-col gap-2">
-                <div className="font-sans text-base font-semibold text-text-primary">
-                  {persona.name}
+              <div className="flex flex-col gap-3">
+                {/* Top row: persona name + tier badge */}
+                <div className="flex flex-row items-start justify-between gap-2">
+                  <div className="font-sans text-lg font-semibold leading-tight text-text-primary">
+                    {persona.name}
+                  </div>
+                  <span
+                    aria-label={`Tier preview: ${tier}`}
+                    className="inline-flex shrink-0 items-center bg-accent-subtle-bg px-2 py-0.5 font-mono text-xs font-semibold text-accent-deep"
+                  >
+                    {tier}
+                  </span>
                 </div>
-                <div className="font-sans text-sm text-text-secondary">
+
+                {/* Descriptor */}
+                <div className="font-sans text-sm leading-relaxed text-text-secondary">
                   {persona.descriptor}
                 </div>
-                <div className="font-sans text-xs text-text-tertiary">
-                  {MODE_DISCLOSURE_LABEL}
-                </div>
+
+                {/* Scenario tag */}
+                {scenario && (
+                  <div className="inline-flex w-fit bg-accent-tint px-2 py-0.5 font-sans text-xs text-accent-deep">
+                    {scenario}
+                  </div>
+                )}
+              </div>
+
+              {/* Mode-disclosure caption at the bottom */}
+              <div className="mt-auto pt-4 font-sans text-xs text-text-tertiary">
+                {MODE_DISCLOSURE_LABEL}
               </div>
             </Card>
           </div>

@@ -14,6 +14,7 @@
 
 import { PersonaSelector } from '@/components/decisioning/PersonaSelector';
 import { Card } from '@/components/primitives/Card';
+import { HeroBanner } from '@/components/screens/HeroBanner';
 import { useWizard } from '@/components/wizard/WizardContext';
 import { useDecisioning } from '@/components/orchestration/DecisioningContext';
 import type { PersonaId } from '@/lib/schemas/personaAdapters';
@@ -62,50 +63,66 @@ export function PersonaSelectScreen() {
   };
 
   const introCopy = liveModeEnabled()
-    ? 'Pre-generated examples or live audit against a profile you enter.'
-    : 'Choose one of four pre-generated example profiles to see the three-pass pipeline walk end-to-end.';
+    ? 'Pre-generated examples or a live audit against a profile you enter — pick one to begin.'
+    : 'Pick one of four pre-generated customer profiles. The pipeline walks the recommendation, audit, examiner memo, and analyst-decision surfaces end-to-end.';
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="font-sans text-sm text-text-secondary">{introCopy}</p>
+    <div className="flex flex-col gap-8">
+      <HeroBanner />
 
-      <PersonaSelector
-        activePersonaId={decisioning.personaId}
-        onPersonaChange={handlePersonaChange}
-      />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h3 className="font-sans text-lg font-semibold text-text-primary">
+            Choose a customer profile
+          </h3>
+          <p className="font-sans text-sm text-text-secondary">{introCopy}</p>
+        </div>
+
+        <PersonaSelector
+          activePersonaId={decisioning.personaId}
+          onPersonaChange={handlePersonaChange}
+        />
 
       {liveModeEnabled() && (
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={LIVE_TILE_LABEL}
-          onClick={handleLiveModeSelected}
-          onKeyDown={(e) => {
-            if (e.key === ' ' || e.key === 'Enter') {
-              e.preventDefault();
-              handleLiveModeSelected();
-            }
-          }}
-          className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
-        >
-          <Card variant="elevated" className="transition-colors hover:bg-surface-recessed">
-            <div className="flex flex-col gap-2">
-              <div className="font-sans text-base font-semibold text-text-primary">
-                {LIVE_TILE_LABEL}
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={LIVE_TILE_LABEL}
+            onClick={handleLiveModeSelected}
+            onKeyDown={(e) => {
+              if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                handleLiveModeSelected();
+              }
+            }}
+            className="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary"
+          >
+            <Card variant="elevated" interactive className="border-l-4 border-l-accent-secondary">
+              <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="font-sans text-base font-semibold text-text-primary">
+                    {LIVE_TILE_LABEL}
+                  </div>
+                  <div className="font-sans text-sm text-text-secondary">
+                    {LIVE_TILE_DESCRIPTOR}
+                  </div>
+                  <div className="flex flex-row gap-2 pt-1">
+                    <span className="inline-flex bg-accent-subtle-bg px-2 py-0.5 font-sans text-xs font-medium text-accent-deep">
+                      {LIVE_TILE_DISCLOSURE}
+                    </span>
+                    <span className="font-sans text-xs text-text-tertiary">
+                      {LIVE_TILE_RATE_NOTE}
+                    </span>
+                  </div>
+                </div>
+                <span aria-hidden="true" className="font-sans text-xl text-text-tertiary">
+                  ›
+                </span>
               </div>
-              <div className="font-sans text-sm text-text-secondary">
-                {LIVE_TILE_DESCRIPTOR}
-              </div>
-              <div className="font-sans text-xs text-text-tertiary">
-                {LIVE_TILE_DISCLOSURE}
-              </div>
-              <div className="font-sans text-xs text-text-tertiary">
-                {LIVE_TILE_RATE_NOTE}
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

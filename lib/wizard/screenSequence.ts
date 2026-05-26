@@ -17,10 +17,19 @@ export interface ScreenDefinition {
   id: ScreenId;
   stepperLabel: string;
   panelHeadline: string;
+  /** When true, WizardShell uses panelHeadline only as aria-label and skips
+   *  rendering the visible h2 — the screen provides its own hero heading.
+   *  Batch 12 addition for HeroBanner on persona-select. */
+  hideVisiblePanelHeadline?: boolean;
 }
 
 export const SCREEN_SEQUENCE: readonly ScreenDefinition[] = [
-  { id: 'persona-select', stepperLabel: 'Choose', panelHeadline: 'Choose a customer profile' },
+  {
+    id: 'persona-select',
+    stepperLabel: 'Choose',
+    panelHeadline: 'Choose a customer profile',
+    hideVisiblePanelHeadline: true,
+  },
   { id: 'data-flow', stepperLabel: 'Flow', panelHeadline: 'Trace the data flow' },
   { id: 'audit', stepperLabel: 'Audit', panelHeadline: 'Three-pass audit' },
   { id: 'examiner-notes', stepperLabel: 'Memo', panelHeadline: 'Examiner notes' },

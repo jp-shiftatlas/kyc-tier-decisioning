@@ -11,7 +11,9 @@ const CANONICAL_TITLE = 'KYC Tier Decisioning';
 const CANONICAL_TAGLINE =
   'Three-pass reasoning pipeline — Shift Atlas consulting methodology demonstration';
 const CANONICAL_BRAND_HREF = 'https://shiftatlas.tech';
-const CANONICAL_BRAND_LABEL = 'Shift Atlas →';
+// Batch 12 polish: brand link label updated to "Shift Atlas ↗"
+// (external-link affordance) alongside the new demo badge.
+const CANONICAL_BRAND_LABEL = 'Shift Atlas ↗';
 
 describe('PageHeader — Decision 38 + Finding D content (10.2 dispatch-prep ratification)', () => {
   it('renders the canonical demo title verbatim', () => {

@@ -26,9 +26,19 @@ describe('WizardShell', () => {
     expect(screen.queryByTestId('screen-flow')).not.toBeInTheDocument();
   });
 
-  it('renders the panel headline for the active screen', () => {
+  it('uses panelHeadline as the section aria-label even when visible heading is suppressed (Batch 12 hero handoff)', () => {
+    // persona-select carries hideVisiblePanelHeadline: true so the screen's
+    // own hero banner provides the visible heading. The aria-label still
+    // tracks the canonical panelHeadline.
     render(<WizardShell screens={buildPlaceholderScreens()} />);
-    expect(screen.getByText('Choose a customer profile')).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Choose a customer profile' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders the visible h2 panel heading for screens without hideVisiblePanelHeadline', () => {
+    render(<WizardShell screens={buildPlaceholderScreens()} initialScreen="data-flow" />);
+    expect(screen.getByText('Trace the data flow')).toBeInTheDocument();
   });
 
   it('does NOT render a Back button on persona-select (first screen)', () => {

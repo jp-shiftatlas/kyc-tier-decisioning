@@ -45,9 +45,11 @@ export function WizardShell({ screens, initialScreen, initialMode }: WizardShell
           data-testid={`screen-panel-${wizard.activeScreen}`}
           aria-label={screenDef.panelHeadline}
         >
-          <h2 className="font-sans text-lg font-semibold text-text-primary mb-4">
-            {screenDef.panelHeadline}
-          </h2>
+          {!screenDef.hideVisiblePanelHeadline && (
+            <h2 className="font-sans text-lg font-semibold text-text-primary mb-4">
+              {screenDef.panelHeadline}
+            </h2>
+          )}
           <ActiveScreen />
         </section>
 
